@@ -10,3 +10,4 @@ export const getGradeInfo = (percent: number) => {
   if (percent >= 50) return { letter: 'D', gpa: 1.0, label: 'Grade 2 Achieved' };
   return { letter: 'F', gpa: 0.0, label: 'Grade 2 Achieved' };
 };
+

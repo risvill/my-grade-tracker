@@ -350,11 +350,13 @@ const insertNewRecord = async (baseName: string) => {
                   margin: '0 auto'           // Центрируем сам контейнер на странице
                 }}>
                   <div style={{ flex: '1', maxWidth: '600px' }}>
-                  <section style={{ background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
+                  <section style={{ height: '257.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
                     <div style={{display: 'flex', justifyContent: 'space-between'}}>
                       <h3 style={{ flex: '1', margin: '8px' ,fontSize: '17px', fontWeight: '700', color: '#666' }}>Formative Assessment (FA)</h3>
+                      
                       {selectedFaIds.length > 0 && (
-                        <div   key="action-panel" // Ключ заставляет React перерисовать блок при появлении
+                        <div   
+                          key="action-panel" 
                           className="animate-appear" style={{ 
                           display: 'flex', 
                           alignItems: 'center', 
@@ -389,8 +391,18 @@ const insertNewRecord = async (baseName: string) => {
                           </button>
                         </div>
                       )}
+                      {editingId && (
+                      <div style={{ color: '#3075e6', marginBottom: '10px', fontSize: '14px', margin: '0',
+                          padding: '10px 5px 0px 5px', }}>
+                        Editing...
+                        <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{  padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' , textDecoration: 'none', marginLeft: '15px' }}>
+                          Cancel
+                        </span>
+                      </div>
+                    )}
                     </div>
-                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px', marginBottom: '25px'}}>
+                    
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px', marginBottom: '0px'}}>
                       {faGrades.map((grade) => (
                         <div 
                           key={grade.id}
@@ -411,31 +423,23 @@ const insertNewRecord = async (baseName: string) => {
                             borderRadius: '12px',       // Скругление как на скриншоте
                             display: 'flex',
                             alignItems: 'center',
-                            gap: '12px',
                             maxWidth: '60px',
                             maxHeight: '36px',
-
+                            marginBottom: '20px'
                           }}
                         >
-                          <span style={{ fontWeight: '600', color: '#334155', fontSize: '15px', color: selectedFaIds.includes(grade.id) ?  'white' : 'black'}}>{grade.value}</span>
+                          <span style={{ fontWeight: '600', fontSize: '15px', color: selectedFaIds.includes(grade.id) ?  'white' : 'black'}}>{grade.value}</span>
                         </div>
                       ))}
                     </div>
-                    {editingId && (
-                    <div style={{ color: '#3b82f6', marginBottom: '10px', fontSize: '14px' }}>
-                      Редактирование... 
-                      <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{ cursor: 'pointer', textDecoration: 'underline', marginLeft: '5px' }}>
-                        (Отмена)
-                      </span>
-                    </div>
-                  )}
-                  <div style={{ display: 'flex', gap: '10px' }}>
+                    
+                  <div style={{ display: 'flex', gap: '10px',}}>
                 <input 
-                  className="input-field" 
-                  placeholder="New grade..." 
+                  className="score-input" 
+
                   value={currentFa} 
                   onChange={(e) => setCurrentFa(e.target.value)} 
-                  style={{ flex: 1, marginBottom: 0 }}
+                  style={{ flex: 1, marginBottom: 0, maxWidth: '100px' }}
                 />
                 <button 
                   onClick={() => {
@@ -450,7 +454,7 @@ const insertNewRecord = async (baseName: string) => {
                   }}
                   style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' }}
                 >
-                  {editingId ? 'Сохранить' : 'Добавить'}
+                  {editingId ? 'Update' : 'Add'}
                 </button>
               </div>
           </section>
@@ -464,6 +468,7 @@ const insertNewRecord = async (baseName: string) => {
                 borderRadius: '20px', 
                 border: '1px solid #e2e8f0',
                 flexShrink: 0,
+                height: '257.5px',
                 boxShadow: 'var(--card-shadow)', 
               }}>
                 <h3 style={{ marginBottom: '15px', fontSize: '16px', fontWeight: '700', color: '#666' }}>Summative Assessment for Quarter</h3>

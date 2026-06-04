@@ -1,25 +1,66 @@
 import { useState } from "react";
-import { Outlet, Link } from "react-router-dom";
-
+import { Outlet, Link, useLocation } from "react-router-dom";
 
 export const MainLayout = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const location = useLocation();
+
+  // Функция для определения, активна ли ссылка
+  const isActive = (path: string) => location.pathname.includes(path);
 
   return (
-    <div id="wrapper">
-      <header style={{ padding: '20px 0', borderBottom: '1px solid var(--border-primary)' }}>
-        <nav className="layout" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1 style={{ color: 'var(--accent-primary)', fontSize: '24px' }}>GradeMaster</h1>
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/calculator">Calculator</Link>
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/predictor">Predictor</Link>
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px'}} to="/analytics">Analytics</Link>
-            <button style={{ cursor: 'pointer', fontSize: '15px', background: 'var(--accent-secondary)', padding: '8px 16px', borderRadius: '8px', border: 'none', color: 'var(--accent-primary)' }} onClick={() => setIsHistoryOpen(true)}>History</button>
+    <div id="wrapper" style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+      <header style={{ 
+        padding: '16px 40px', 
+        borderBottom: '1px solid #edf2f7', 
+        background: '#fff',
+        position: 'sticky', top: 0, zIndex: 1000 
+      }}>
+        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+          
+          <div style={{ fontSize: '22px', fontWeight: '800', color: '#4a5568' }}>
+            GradeMaster
+          </div>
+
+          <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
+            {['calculator', 'predictor', 'analytics'].map((path) => (
+              <Link 
+                key={path}
+                to={`/${path}`} 
+                style={{ 
+                  textTransform: 'capitalize',
+                  textDecoration: 'none',
+                  fontSize: '15px',
+                  fontWeight: isActive(path) ? '600' : '500',
+                  color: isActive(path) ? '#4a5568' : '#a0aec0',
+                  transition: 'color 0.2s'
+                }}
+              >
+                {path}
+              </Link>
+            ))}
+            
+            <button 
+              onClick={() => setIsHistoryOpen(true)}
+              style={{ 
+                cursor: 'pointer',
+                fontSize: '15px',
+                background: '#ebf4ff', // Легкий голубой фон
+                padding: '8px 20px',
+                borderRadius: '10px',
+                border: 'none',
+                color: '#3182ce',
+                fontWeight: '600',
+                marginLeft: '12px'
+              }}
+            >
+              History
+            </button>
           </div>
         </nav>
       </header>
       
-      <main className="main-content-container" >
+      <main className="main-content-container" style={{ flex: 1, padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         <Outlet context={{ isHistoryOpen, setIsHistoryOpen }} />
       </main>
     </div>

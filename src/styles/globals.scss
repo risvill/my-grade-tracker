@@ -3,9 +3,18 @@
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@300;400;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=SF+Pro+Text:wght@300;400;500;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Caveat:wght@400..700&family=Lato:ital,wght@0,100;0,300;0,400;0,700;0,900;1,100;1,300;1,400;1,700;1,900&family=Lexend:wght@100..900&family=Lora:ital,wght@0,400..700;1,400..700&family=Playwrite+AU+QLD:wght@100..400&display=swap");
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
 
+/* Скрываем стрелки для Firefox */
+input[type=number] {
+  -moz-appearance: textfield;
+}
 :root {
-  --bg-primary: #fbfcff;
+  --bg-primary: #f4f4f4;
   --bg-secondary: #ffffff;
   --bg-tertiary: #f8fafc;
   --text-primary: #0f172a;
@@ -181,9 +190,39 @@ a:hover {
   background: white;
   padding: 30px;
   border-radius: 20px;
+
   width: 450px;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
   color: #1e293b;
+}
+
+/* global.scss */
+.score-input {
+  width: 70px;
+  padding: 8px;
+  border-radius: 12px;
+  border: 2px solid #cbd5e0; /* Базовый серый цвет */
+  text-align: center;
+  font-size: 15px;
+  outline: none;
+  transition: all 0.3s ease;
+  
+
+  &:focus {
+    border-color: #3b82f6; /* Твой синий цвет */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.38); /* Твой эффект тени */
+  }
+}
+
+.action-panel-enter {
+  opacity: 0;
+  transform: translateY(-10px); /* Немного сдвигаем вверх */
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.action-panel-enter-active {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .modalButtons {
@@ -316,11 +355,15 @@ section {
 .overlay.open { display: block; }
 
 /* Карточки */
+/* global.scss */
 .card {
-  background: var(--bg-secondary);
-  padding: 30px;
-  border-radius: 20px;
-  border: 1px solid var(--border-primary);
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  padding: 24px;
+  width: 700px;/* Фиксированная максимальная ширина */
+  margin: 0 auto 24px auto; /* Центрирование и отступ снизу */
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
 }
 
 .total-card {
@@ -360,17 +403,6 @@ section {
   gap: 10px;
   .primary-btn { width: auto; padding: 0 20px; }
 }
-.main-content-container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 40px 20px; /* Добавили отступ сверху/снизу внутри, чтобы контент не касался краев */
-  
-  /* Цветовое оформление */
-  background-color: var(--bg-primary); /* Основной фон страницы */
-  border-radius: 24px;                 /* Мягкие скругления */
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
-  border: 1px solid var(--border-primary);     /* Тонкая рамка для четкости */
-}
 
 /* Если хочешь добавить легкий градиент на фон всей страницы */
 body {
@@ -398,4 +430,18 @@ body {
       color: var(--accent-primary);
     }
   }
+}
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-appear {
+  animation: slideIn 0.3s ease-in forwards;
 }
