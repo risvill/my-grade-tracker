@@ -10,13 +10,18 @@ export const CalculatorWidget = () => {
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
   const [history, setHistory] = useState<any[]>([]);
-  const [faGrades, setFaGrades] = useState<string[]>([]);
+const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
 const [targetId, setTargetId] = useState<number | null>(null);
 const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
 const [newSubjectName, setNewSubjectName] = useState(''); // Для ввода имени
 const [pendingName, setPendingName] = useState(''); // Имя, которое уже есть в базе
+
+const [selectedFaIds, setSelectedFaIds] = useState<number[]>([]); // ID выбранных оценок
+const [isSelectionMode, setIsSelectionMode] = useState(false); // Включен ли режим выбора
+
+const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
 
@@ -29,6 +34,34 @@ const [pendingName, setPendingName] = useState(''); // Имя, которое у
     fetchHistory(); 
   }, []);
 
+
+const handlePressStart = (id: number) => {
+  const timeout = setTimeout(() => {
+    toggleSelection(id); // Выбираем элемент через 500мс
+  }, 300);
+  setTimer(timeout);
+};
+
+// Функция завершения нажатия
+const handlePressEnd = () => {
+  if (timer) {
+    clearTimeout(timer);
+    setTimer(null);
+  }
+};
+
+const toggleSelection = (id: number) => {
+  if (selectedFaIds.includes(id)) {
+    // Убираем из выбора
+    const newSelection = selectedFaIds.filter(selectedId => selectedId !== id);
+    setSelectedFaIds(newSelection);
+    if (newSelection.length === 0) setIsSelectionMode(false);
+  } else {
+    // Добавляем в выбор
+    setSelectedFaIds([...selectedFaIds, id]);
+    setIsSelectionMode(true);
+  }
+};
 
 const handleReset = () => {
   setRk1('');
@@ -128,58 +161,77 @@ const insertNewRecord = async (baseName: string) => {
             <input className="input-field" type="number" placeholder="РК-2" value={rk2} onChange={(e) => setRk2(e.target.value)} />
             <input className="input-field" type="number" placeholder="Экзамен" value={exam} onChange={(e) => setExam(e.target.value)} />
             <div style={{ marginTop: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '12px' }}>
- {saveStatus === 'idle' && (
-  <div style={{ display: 'flex', gap: '10px' }}>
-    <button 
-      onClick={() => setSaveStatus('input')} 
-      style={{ flex: 2, padding: '15px', background: 'var(--accent-primary)', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer' }}
-    >
-      Save Result
-    </button>
-    <button 
-      onClick={handleReset} 
-      style={{ flex: 1, padding: '15px', background: 'var(--bg-secondary)', color: 'var(--text-muted)', borderRadius: '12px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
-    >
-      Reset
-    </button>
-  </div>
-)}
+              {saveStatus === 'idle' && (
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button 
+                    onClick={() => setSaveStatus('input')} 
+                    style={{ flex: 2, padding: '15px', background: 'var(--accent-primary)', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer' }}
+                  >
+                    Save Result
+                  </button>
+                  <button 
+                    onClick={handleReset} 
+                    style={{ flex: 1, padding: '15px', background: 'var(--bg-secondary)', color: 'var(--text-muted)', borderRadius: '12px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
+                  >
+                    Reset
+                  </button>
+                </div>
+              )}
 
-  {saveStatus === 'input' && (
-    <div>
-      <input 
-        placeholder="Введите название..." 
-        value={newSubjectName} 
-        onChange={(e) => setNewSubjectName(e.target.value)} 
-      />
-      <button onClick={handleCheckExistence}>Проверить</button>
-    </div>
-  )}
+            {saveStatus === 'input' && (
+              <div>
+                <input 
+                  placeholder="Введите название..." 
+                  value={newSubjectName} 
+                  onChange={(e) => setNewSubjectName(e.target.value)} 
+                />
+                <button onClick={handleCheckExistence}>Проверить</button>
+              </div>
+            )}
 
-  {saveStatus === 'confirming' && (
-    <div>
-            <p>Предмет <strong>{pendingName}</strong> уже есть. Обновить?</p>
-            <button onClick={handleUpdate}>Обновить</button>
-            <button onClick={() => insertNewRecord(pendingName)}>Создать новый</button>
+            {saveStatus === 'confirming' && (
+              <div>
+                      <p>Предмет <strong>{pendingName}</strong> уже есть. Обновить?</p>
+                      <button onClick={handleUpdate}>Обновить</button>
+                      <button onClick={() => insertNewRecord(pendingName)}>Создать новый</button>
+                    </div>
+            )}
+
+            {saveStatus === 'success' && (
+              <div style={{ color: 'green', fontWeight: 'bold' }}>
+                ✅ Успешно сохранено!
+              </div>
+            )}
           </div>
-  )}
-
-  {saveStatus === 'success' && (
-    <div style={{ color: 'green', fontWeight: 'bold' }}>
-      ✅ Успешно сохранено!
-    </div>
-  )}
-</div>
           </section>
 
           <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
             <h3 style={{ marginBottom: '20px' }}>Formative Assessment (FA)</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-              {faGrades.map((g, i) => (
-                <span key={i} style={{ background: 'var(--accent-secondary)', color: 'var(--accent-primary)', padding: '8px 12px', borderRadius: '8px', fontWeight: 'bold' }}>
-                  {g}
-                </span>
-              ))}
+              {faGrades.map((grade) => (
+  <div 
+    key={grade.id}
+    // Старт таймера при нажатии (и мыши, и таче)
+    onMouseDown={() => handlePressStart(grade.id)}
+    onMouseUp={handlePressEnd}
+    onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
+    
+    // Для мобильных устройств:
+    onTouchStart={() => handlePressStart(grade.id)}
+    onTouchEnd={handlePressEnd}
+    
+    style={{
+      padding: '10px',
+      border: selectedFaIds.includes(grade.id) ? '2px solid var(--accent-primary)' : '1px solid #ccc',
+      backgroundColor: selectedFaIds.includes(grade.id) ? '#e6f0ff' : 'white',
+      cursor: 'pointer',
+      borderRadius: '8px',
+      userSelect: 'none' // Чтобы текст не выделялся при удержании
+    }}
+  >
+    {grade.value}
+  </div>
+))}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
               <input 
@@ -189,7 +241,7 @@ const insertNewRecord = async (baseName: string) => {
                 onChange={(e) => setCurrentFa(e.target.value)} 
                 style={{ marginBottom: 0 }}
               />
-              <button onClick={() => { if(currentFa) setFaGrades([...faGrades, currentFa]); setCurrentFa(''); }} style={{ padding: '0 20px', background: 'var(--accent-primary)', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
+              <button onClick={() => { if(currentFa) setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]); setCurrentFa(''); }} style={{ padding: '0 20px', background: 'var(--accent-primary)', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
                 +
               </button>
             </div>
