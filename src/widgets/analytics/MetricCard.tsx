@@ -1,5 +1,5 @@
 import { Card } from "../../shared/ui/card"; // Используй свой путь к Card
-import { InfoTooltip } from "../../shared/ui/InfoTooltip/infoTooltip";
+import { InfoTooltip } from "../../shared/ui/InfoTooltip/InfoTooltip";
 
 import styles from "./AnalyticsWidget.module.scss";
 

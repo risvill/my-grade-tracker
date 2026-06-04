@@ -11,12 +11,10 @@ export const MainLayout = () => {
         <nav className="layout" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1 style={{ color: 'var(--accent-primary)', fontSize: '24px' }}>GradeMaster</h1>
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/calculator">Калькулятор</Link>
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/predictor">Предиктор</Link>
-            {/* Новая вкладка */}
-            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px'}} to="/analytics">Аналитика</Link>
-            {/* Кнопка истории теперь здесь */}
-            <button onClick={() => setIsHistoryOpen(true)}>История</button>
+            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/calculator">Calculator</Link>
+            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/predictor">Predictor</Link>
+            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px'}} to="/analytics">Analytics</Link>
+            <button style={{ cursor: 'pointer', fontSize: '15px', background: 'var(--accent-secondary)', padding: '8px 16px', borderRadius: '8px', border: 'none', color: 'var(--accent-primary)' }} onClick={() => setIsHistoryOpen(true)}>History</button>
           </div>
         </nav>
       </header>

@@ -1,13 +1,10 @@
 import { useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom'; // Импортируем хук контекста
+import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 
 export const CalculatorWidget = () => {
-  // Получаем состояние истории из MainLayout
-  const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<{ 
-    isHistoryOpen: boolean, 
-    setIsHistoryOpen: (val: boolean) => void 
-  }>();
+  // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
+  const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
 
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
@@ -32,18 +29,13 @@ export const CalculatorWidget = () => {
     if (!subjectName) return;
 
     const { error } = await supabase.from('grades').insert([{ 
-      title: subjectName, 
-      rk1, 
-      rk2, 
-      exam, 
-      total_percent: total.toFixed(1),
-      fa_grades: faGrades 
+      title: subjectName, rk1, rk2, exam, total_percent: total.toFixed(1), fa_grades: faGrades 
     }]);
     
     if (error) alert('Ошибка: ' + error.message);
     else {
       alert('Сохранено!');
-      fetchHistory();
+      fetchHistory(); // Обновляем список
     }
   };
 
@@ -52,13 +44,13 @@ export const CalculatorWidget = () => {
     setRk2(item.rk2?.toString() || '');
     setExam(item.exam?.toString() || '');
     setFaGrades(item.fa_grades || []); 
-    setIsHistoryOpen(false); // Закрываем историю через функцию из контекста
+    
+    // Закрываем историю через контекст
+    if (setIsHistoryOpen) setIsHistoryOpen(false);
   };
 
   return (
     <div id="wrapper">
-      {/* Кнопку "История" из виджета УДАЛИЛИ, она теперь в Navbar */}
-
       <main className="layout" style={{ marginTop: '40px' }}>
         <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', boxShadow: 'var(--card-shadow)', marginBottom: '30px' }}>
           <p style={{ color: 'var(--text-muted)' }}>Total Percent</p>
@@ -101,7 +93,7 @@ export const CalculatorWidget = () => {
         </div>
       </main>
 
-      {/* История теперь управляется через isHistoryOpen из контекста */}
+      {/* Вынос истории за пределы MainLayout (если нужно) или управление через контекст */}
       <div 
         className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
         style={{ position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', height: '100%', background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-primary)', padding: '20px', transition: '0.3s', zIndex: 100 }}
