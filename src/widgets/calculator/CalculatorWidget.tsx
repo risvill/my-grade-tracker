@@ -20,6 +20,7 @@ const [pendingName, setPendingName] = useState(''); // Имя, которое у
 
 const [selectedFaIds, setSelectedFaIds] = useState<number[]>([]); // ID выбранных оценок
 const [isSelectionMode, setIsSelectionMode] = useState(false); // Включен ли режим выбора
+const [editingId, setEditingId] = useState<number | null>(null);
 
 const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 
@@ -33,6 +34,22 @@ const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
   useEffect(() => { 
     fetchHistory(); 
   }, []);
+
+const handleDeleteSelected = () => {
+  setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
+  setSelectedFaIds([]); // Сбрасываем выбор
+  setIsSelectionMode(false);
+};
+
+const handleEditSelected = () => {
+  const item = faGrades.find(g => g.id === selectedFaIds[0]);
+  if (item) {
+    setCurrentFa(item.value); // Кладем значение в поле ввода (инпут)
+    setEditingId(item.id);    // Запоминаем, какую карточку правим
+    setSelectedFaIds([]);     // Скрываем панель кнопок
+    setIsSelectionMode(false);
+  }
+};
 
 
 const handlePressStart = (id: number) => {
@@ -205,34 +222,67 @@ const insertNewRecord = async (baseName: string) => {
           </div>
           </section>
 
+          {/* Панель действий */}
+          {selectedFaIds.length > 0 && (
+            <div style={{ 
+              display: 'flex', 
+              gap: '10px', 
+              marginBottom: '15px', 
+              padding: '10px', 
+              background: '#f0f0f0', 
+              borderRadius: '8px' 
+            }}>
+              <button onClick={handleDeleteSelected}>
+                Удалить ({selectedFaIds.length})
+              </button>
+              
+              {/* Кнопка "Изменить" доступна только если выбрана ровно одна оценка */}
+              {selectedFaIds.length === 1 && (
+                <button onClick={handleEditSelected}>
+                  Изменить
+                </button>
+              )}
+              
+              <button onClick={() => { setSelectedFaIds([]); setIsSelectionMode(false); }}>
+                Отмена
+              </button>
+            </div>
+          )}
+
           <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
             <h3 style={{ marginBottom: '20px' }}>Formative Assessment (FA)</h3>
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
               {faGrades.map((grade) => (
-  <div 
-    key={grade.id}
-    // Старт таймера при нажатии (и мыши, и таче)
-    onMouseDown={() => handlePressStart(grade.id)}
-    onMouseUp={handlePressEnd}
-    onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
-    
-    // Для мобильных устройств:
-    onTouchStart={() => handlePressStart(grade.id)}
-    onTouchEnd={handlePressEnd}
-    
-    style={{
-      padding: '10px',
-      border: selectedFaIds.includes(grade.id) ? '2px solid var(--accent-primary)' : '1px solid #ccc',
-      backgroundColor: selectedFaIds.includes(grade.id) ? '#e6f0ff' : 'white',
-      cursor: 'pointer',
-      borderRadius: '8px',
-      userSelect: 'none' // Чтобы текст не выделялся при удержании
-    }}
-  >
-    {grade.value}
-  </div>
-))}
+                <div 
+                  key={grade.id}
+                  // Старт таймера при нажатии (и мыши, и таче)
+                  onMouseDown={() => handlePressStart(grade.id)}
+                  onMouseUp={handlePressEnd}
+                  onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
+                  
+                  // Для мобильных устройств:
+                  onTouchStart={() => handlePressStart(grade.id)}
+                  onTouchEnd={handlePressEnd}
+                  
+                  style={{
+                    padding: '10px',
+                    border: selectedFaIds.includes(grade.id) ? '2px solid var(--accent-primary)' : '1px solid #ccc',
+                    backgroundColor: selectedFaIds.includes(grade.id) ? '#e6f0ff' : 'white',
+                    cursor: 'pointer',
+                    borderRadius: '8px',
+                    userSelect: 'none' // Чтобы текст не выделялся при удержании
+                  }}
+                >
+                  {grade.value}
+                </div>
+              ))}
             </div>
+            {editingId && (
+              <div style={{ color: 'var(--accent-primary)', marginBottom: '5px' }}>
+                Редактирование оценки... 
+                <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{cursor: 'pointer'}}> (Отмена)</span>
+              </div>
+            )}
             <div style={{ display: 'flex', gap: '10px' }}>
               <input 
                 className="input-field" 
@@ -241,8 +291,23 @@ const insertNewRecord = async (baseName: string) => {
                 onChange={(e) => setCurrentFa(e.target.value)} 
                 style={{ marginBottom: 0 }}
               />
-              <button onClick={() => { if(currentFa) setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]); setCurrentFa(''); }} style={{ padding: '0 20px', background: 'var(--accent-primary)', color: 'white', borderRadius: '8px', border: 'none', cursor: 'pointer' }}>
-                +
+              <button onClick={() => {
+                if (!currentFa) return;
+
+                if (editingId) {
+                  // Если мы в режиме редактирования — обновляем существующую
+                  setFaGrades(faGrades.map(g => 
+                    g.id === editingId ? { ...g, value: currentFa } : g
+                  ));
+                  setEditingId(null); // Выходим из режима редактирования
+                } else {
+                  // Если просто добавляем новую
+                  setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]);
+                }
+                
+                setCurrentFa(''); // Очищаем инпут
+              }}>
+                {editingId ? 'Сохранить' : 'Добавить'}
               </button>
             </div>
           </section>
