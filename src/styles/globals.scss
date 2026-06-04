@@ -285,3 +285,88 @@ section {
   z-index: 999;
 }
 .overlay.open { display: block; }
+
+/* Карточки */
+.card {
+  background: var(--bg-secondary);
+  padding: 30px;
+  border-radius: 20px;
+  border: 1px solid var(--border-primary);
+}
+
+.total-card {
+  box-shadow: var(--card-shadow);
+  margin-bottom: 30px;
+  h2 { font-size: 48px; margin: 10px 0; }
+}
+
+/* Сетка */
+.grid-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Кнопки и поля */
+.primary-btn {
+  width: 100%;
+  padding: 15px;
+  background: var(--accent-primary);
+  color: white;
+  border-radius: 12px;
+  border: none;
+  cursor: pointer;
+}
+
+.fa-tag {
+  background: var(--accent-secondary);
+  color: var(--accent-primary);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.fa-input-group {
+  display: flex;
+  gap: 10px;
+  .primary-btn { width: auto; padding: 0 20px; }
+}
+.main-content-container {
+  max-width: 1200px;
+  margin: 40px auto;
+  padding: 40px 20px; /* Добавили отступ сверху/снизу внутри, чтобы контент не касался краев */
+  
+  /* Цветовое оформление */
+  background-color: var(--bg-primary); /* Основной фон страницы */
+  border-radius: 24px;                 /* Мягкие скругления */
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* Легкая тень для объема */
+  border: 1px solid var(--border-primary);     /* Тонкая рамка для четкости */
+}
+
+/* Если хочешь добавить легкий градиент на фон всей страницы */
+body {
+  background-color: #f8f9fa; /* Светло-серый, если var(--bg-primary) слишком яркий */
+}
+
+.target-selector {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+
+  button {
+    flex: 1;
+    padding: 20px;
+    border: 1px solid var(--border-primary);
+    background: var(--bg-secondary);
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: 0.3s;
+
+    &.active {
+      border-color: var(--accent-primary);
+      background: var(--accent-secondary);
+      color: var(--accent-primary);
+    }
+  }
+}
