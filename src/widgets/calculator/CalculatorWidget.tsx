@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
+import { Pencil, Trash2, ArrowLeft, History, } from 'lucide-react';
 
 export const CalculatorWidget = () => {
   // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
@@ -26,6 +27,14 @@ const [editingId, setEditingId] = useState<number | null>(null);
 const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
 const gradeInfo = getGradeInfo(total);
+
+const getScoreColor = (score: any) => {
+  const num = Number(score);
+  if (!score || num < 50) return '#e53e3e'; // Красный (ниже 50 или пусто)
+  if (num >= 50 && num <= 69) return '#e53e3e'; // Красный (50-69)
+  if (num >= 70 && num <= 89) return '#d69e2e'; // Оранжевый (70-89)
+  return '#38a169'; // Зеленый (90-100)
+};
 
 const deleteHistoryItem = async (id: number) => {
   // 1. Удаляем из базы
@@ -203,11 +212,14 @@ const insertNewRecord = async (baseName: string) => {
 
   return (
     <div id="wrapper">
-      <main className="layout" style={{ marginTop: '40px' }}>
+      <main className="layout" style={{ marginTop: '20px' }}>
         <section style={{ 
           background: 'var(--bg-secondary)', 
           padding: '30px', 
+          margin: '0 auto',
           borderRadius: '20px', 
+          width:'100%',
+          maxWidth: '850px',
           boxShadow: 'var(--card-shadow)', 
           marginBottom: '30px' 
         }}>
@@ -218,7 +230,7 @@ const insertNewRecord = async (baseName: string) => {
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <div style={{ color: '#666', fontSize: '14px' }}>Total Percent</div>
+                <div style={{ color: '#666', fontSize: '18px', fontWeight: '700' }}>Total Percent</div>
                 <div style={{ fontSize: '32px', fontWeight: 'bold', margin: '5px 0' }}>
                   {isNaN(total) ? '0.0' : total.toFixed(1)}%
                 </div>
@@ -258,12 +270,229 @@ const insertNewRecord = async (baseName: string) => {
             </div>
           </div>
         </section>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
-          <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-            <h3 style={{ marginBottom: '20px' }}>Summative Assessments</h3>
-            <input className="input-field" type="number" placeholder="РК-1" value={rk1} onChange={(e) => setRk1(e.target.value)} />
-            <input className="input-field" type="number" placeholder="РК-2" value={rk2} onChange={(e) => setRk2(e.target.value)} />
-            <input className="input-field" type="number" placeholder="Экзамен" value={exam} onChange={(e) => setExam(e.target.value)} />
+          <section style={{ 
+            background: '#ffffff', 
+            padding: '30px', 
+            borderRadius: '20px', 
+            width: '100%', 
+            maxWidth: '850px', 
+            margin: '0 auto 30px auto', 
+            border: '1px solid #e2e8f0',
+            boxShadow: 'var(--card-shadow)', 
+          }}>
+            <div style={{ marginBottom: '20px', fontSize: '18px', fontWeight: '700', color: '#666' }}>
+              Summative Assessments
+            </div>
+
+            {/* РК-1 и РК-2 в одну линию */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              {/* РК-1 */}
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <h3 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#475569' }}>RK-1</h3>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <input 
+                    type="number" 
+                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    value={rk1} 
+                    onChange={(e) => setRk1(e.target.value)}
+                    placeholder="Score"
+                    style={{ 
+                      // Динамически меняем рамку в зависимости от значения
+                      borderColor: getScoreColor(rk1),
+                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
+                    }}
+                  />
+                  <span style={{ color: '#94a3b8' }}>/</span>
+                  <input 
+                    type="text" 
+                    value="100" 
+                    disabled 
+                    style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cbd5e0', textAlign: 'center', background: '#f1f5f9', color: '#64748b' }} 
+                  />
+                </div>
+              </div>
+
+              {/* РК-2 (по аналогии) */}
+              <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
+                <h4 style={{ margin: '0 0 10px 0', fontSize: '15px', color: '#475569' }}>RK-2</h4>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <input 
+                    type="number" 
+                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    value={rk2} 
+                    onChange={(e) => setRk2(e.target.value)}
+                    placeholder="Score"
+                    style={{ 
+                      // Динамически меняем рамку в зависимости от значения
+                      borderColor: getScoreColor(rk2),
+                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
+                    }}
+                  />
+                  <span style={{ color: '#94a3b8' }}>/</span>
+                  <input 
+                    type="text" 
+                    value="100" 
+                    disabled 
+                    style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cbd5e0', textAlign: 'center', background: '#f1f5f9', color: '#64748b' }} 
+                  />
+                </div>
+              </div>
+            </div>
+
+            </section>
+               <div style={{ 
+                  display: 'flex',           // Используем flex вместо grid
+                  justifyContent: 'center',  // Прижимаем всё к центру
+                  alignItems: 'flex-start',  // Выравниваем по верхнему краю
+                  gap: '20px',               // Расстояние между блоками (уменьши до 10px, если хочешь еще ближе)
+                  width: '100%',
+                  maxWidth: '1200px',        // Ограничиваем общую ширину, чтобы не разлетались
+                  margin: '0 auto'           // Центрируем сам контейнер на странице
+                }}>
+                  <div style={{ flex: '1', maxWidth: '600px' }}>
+                  <section style={{ background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
+                    <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                      <h3 style={{ flex: '1', margin: '8px' ,fontSize: '17px', fontWeight: '700', color: '#666' }}>Formative Assessment (FA)</h3>
+                      {selectedFaIds.length > 0 && (
+                        <div   key="action-panel" // Ключ заставляет React перерисовать блок при появлении
+                          className="animate-appear" style={{ 
+                          display: 'flex', 
+                          alignItems: 'center', 
+                          gap: '8px', 
+                          margin: '0',
+                          padding: '0px 5px 0px 5px',
+                        }}>
+                          {/* Кнопка Удалить */}
+                          <button 
+                            onClick={handleDeleteSelected} 
+                            style={{ padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#ef4444' }}
+                          >
+                            <Trash2 size={20} />
+                          </button>
+                          
+                          {/* Кнопка Редактировать (только если выбрана одна) */}
+                          {selectedFaIds.length === 1 && (
+                            <button 
+                              onClick={handleEditSelected} 
+                              style={{ padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#3b82f6' }}
+                            >
+                              <Pencil size={20} />
+                            </button>
+                          )}
+
+                          {/* Кнопка Назад (Отмена) */}
+                          <button 
+                            onClick={() => { setSelectedFaIds([]); setIsSelectionMode(false); }}
+                            style={{ padding: '8px', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#f8fafc', cursor: 'pointer', display: 'flex', alignItems: 'center', color: '#64748b' }}
+                          >
+                            <ArrowLeft size={20} />
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px', marginBottom: '25px'}}>
+                      {faGrades.map((grade) => (
+                        <div 
+                          key={grade.id}
+                          // Старт таймера при нажатии (и мыши, и таче)
+                          onMouseDown={() => handlePressStart(grade.id)}
+                          onMouseUp={handlePressEnd}
+                          onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
+                          
+                          // Для мобильных устройств:
+                          onTouchStart={() => handlePressStart(grade.id)}
+                          onTouchEnd={handlePressEnd}
+                          
+                          style={{
+                            padding: '8px 16px',
+                            border: selectedFaIds.includes(grade.id) ? '2px solid #3b82f6' : '1px solid #e2e8f0',
+                            backgroundColor: selectedFaIds.includes(grade.id) ?  '#3b82f6' : 'white',
+                            boxShadow: selectedFaIds.includes(grade.id) ?  '-2px 0 10px #94bdff' : '1px 0 0 white',
+                            borderRadius: '12px',       // Скругление как на скриншоте
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '12px',
+                            maxWidth: '60px',
+                            maxHeight: '36px',
+
+                          }}
+                        >
+                          <span style={{ fontWeight: '600', color: '#334155', fontSize: '15px', color: selectedFaIds.includes(grade.id) ?  'white' : 'black'}}>{grade.value}</span>
+                        </div>
+                      ))}
+                    </div>
+                    {editingId && (
+                    <div style={{ color: '#3b82f6', marginBottom: '10px', fontSize: '14px' }}>
+                      Редактирование... 
+                      <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{ cursor: 'pointer', textDecoration: 'underline', marginLeft: '5px' }}>
+                        (Отмена)
+                      </span>
+                    </div>
+                  )}
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                <input 
+                  className="input-field" 
+                  placeholder="New grade..." 
+                  value={currentFa} 
+                  onChange={(e) => setCurrentFa(e.target.value)} 
+                  style={{ flex: 1, marginBottom: 0 }}
+                />
+                <button 
+                  onClick={() => {
+                    if (!currentFa) return;
+                    if (editingId) {
+                      setFaGrades(faGrades.map(g => g.id === editingId ? { ...g, value: currentFa } : g));
+                      setEditingId(null);
+                    } else {
+                      setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]);
+                    }
+                    setCurrentFa('');
+                  }}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' }}
+                >
+                  {editingId ? 'Сохранить' : 'Добавить'}
+                </button>
+              </div>
+          </section>
+          </div>
+
+            <section style={{ 
+                background: '#ffffff', 
+                padding: '20px', 
+                width: '100%' ,
+                maxWidth: '220px',
+                borderRadius: '20px', 
+                border: '1px solid #e2e8f0',
+                flexShrink: 0,
+                boxShadow: 'var(--card-shadow)', 
+              }}>
+                <h3 style={{ marginBottom: '15px', fontSize: '16px', fontWeight: '700', color: '#666' }}>Summative Assessment for Quarter</h3>
+                <div style={{ display: 'flex', padding: '10px',alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
+                  <input 
+                    type="number" 
+                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    value={exam} 
+                    onChange={(e) => setExam(e.target.value)}
+                    placeholder="Score"
+                    style={{ 
+                      // Динамически меняем рамку в зависимости от значения
+                      borderColor: getScoreColor(rk1),
+                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
+                    }}
+                  />
+                  <span style={{ color: '#a3aebe' }}>/</span>
+                  <input 
+                    type="text" 
+                    value="100" 
+                    disabled 
+                    style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cad5e2', textAlign: 'center', background: '#fafdff', color: '#8f9db1' }} 
+                  />
+                </div>
+             </section>
+          </div>
+
+          
+            {/* Блок с кнопками (Save/Reset) */}
             <div style={{ marginTop: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '12px' }}>
               {saveStatus === 'idle' && (
                 <div style={{ display: 'flex', gap: '10px' }}>
@@ -275,178 +504,114 @@ const insertNewRecord = async (baseName: string) => {
                   </button>
                   <button 
                     onClick={handleReset} 
-                    style={{ flex: 1, padding: '15px', background: 'var(--bg-secondary)', color: 'var(--text-muted)', borderRadius: '12px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
+                    style={{ flex: 1, padding: '15px', background: '#fff', color: '#4a5568', borderRadius: '12px', border: '1px solid #cbd5e0', cursor: 'pointer' }}
                   >
                     Reset
                   </button>
                 </div>
               )}
 
-            {saveStatus === 'input' && (
-              <div>
-                <input 
-                  placeholder="Введите название..." 
-                  value={newSubjectName} 
-                  onChange={(e) => setNewSubjectName(e.target.value)} 
-                />
-                <button onClick={handleCheckExistence}>Проверить</button>
-              </div>
-            )}
-
-            {saveStatus === 'confirming' && (
-              <div>
-                      <p>Предмет <strong>{pendingName}</strong> уже есть. Обновить?</p>
-                      <button onClick={handleUpdate}>Обновить</button>
-                      <button onClick={() => insertNewRecord(pendingName)}>Создать новый</button>
-                    </div>
-            )}
-
-            {saveStatus === 'success' && (
-              <div style={{ color: 'green', fontWeight: 'bold' }}>
-                ✅ Успешно сохранено!
-              </div>
-            )}
-          </div>
-          </section>
-
-          {/* Панель действий */}
-          {selectedFaIds.length > 0 && (
-            <div style={{ 
-              display: 'flex', 
-              gap: '10px', 
-              marginBottom: '15px', 
-              padding: '10px', 
-              background: '#f0f0f0', 
-              borderRadius: '8px' 
-            }}>
-              <button onClick={handleDeleteSelected}>
-                Удалить ({selectedFaIds.length})
-              </button>
-              
-              {/* Кнопка "Изменить" доступна только если выбрана ровно одна оценка */}
-              {selectedFaIds.length === 1 && (
-                <button onClick={handleEditSelected}>
-                  Изменить
-                </button>
-              )}
-              
-              <button onClick={() => { setSelectedFaIds([]); setIsSelectionMode(false); }}>
-                Отмена
-              </button>
-            </div>
-          )}
-
-          <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
-            <h3 style={{ marginBottom: '20px' }}>Formative Assessment (FA)</h3>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
-              {faGrades.map((grade) => (
-                <div 
-                  key={grade.id}
-                  // Старт таймера при нажатии (и мыши, и таче)
-                  onMouseDown={() => handlePressStart(grade.id)}
-                  onMouseUp={handlePressEnd}
-                  onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
-                  
-                  // Для мобильных устройств:
-                  onTouchStart={() => handlePressStart(grade.id)}
-                  onTouchEnd={handlePressEnd}
-                  
-                  style={{
-                    padding: '10px',
-                    border: selectedFaIds.includes(grade.id) ? '2px solid var(--accent-primary)' : '1px solid #ccc',
-                    backgroundColor: selectedFaIds.includes(grade.id) ? '#e6f0ff' : 'white',
-                    cursor: 'pointer',
-                    borderRadius: '8px',
-                    userSelect: 'none' // Чтобы текст не выделялся при удержании
-                  }}
-                >
-                  {grade.value}
+              {/* Остальные состояния (input, confirming, success) оставь как были, они отлично работают */}
+              {saveStatus === 'input' && (
+                <div>
+                  <input placeholder="Введите название..." value={newSubjectName} onChange={(e) => setNewSubjectName(e.target.value)} />
+                  <button onClick={handleCheckExistence}>Проверить</button>
                 </div>
-              ))}
+              )}
+              {/* ... (остальные состояния) */}
             </div>
-            {editingId && (
-              <div style={{ color: 'var(--accent-primary)', marginBottom: '5px' }}>
-                Редактирование оценки... 
-                <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{cursor: 'pointer'}}> (Отмена)</span>
-              </div>
-            )}
-            <div style={{ display: 'flex', gap: '10px' }}>
-              <input 
-                className="input-field" 
-                placeholder="New grade..." 
-                value={currentFa} 
-                onChange={(e) => setCurrentFa(e.target.value)} 
-                style={{ marginBottom: 0 }}
-              />
-              <button onClick={() => {
-                if (!currentFa) return;
-
-                if (editingId) {
-                  // Если мы в режиме редактирования — обновляем существующую
-                  setFaGrades(faGrades.map(g => 
-                    g.id === editingId ? { ...g, value: currentFa } : g
-                  ));
-                  setEditingId(null); // Выходим из режима редактирования
-                } else {
-                  // Если просто добавляем новую
-                  setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]);
-                }
-                
-                setCurrentFa(''); // Очищаем инпут
-              }}>
-                {editingId ? 'Сохранить' : 'Добавить'}
-              </button>
-            </div>
-          </section>
-        </div>
       </main>
 
       {/* Вынос истории за пределы MainLayout (если нужно) или управление через контекст */}
       <div 
-        className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
-        style={{ position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', height: '100%', background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-primary)', padding: '20px', transition: '0.3s', zIndex: 100 }}
-      >
-          <h3>Calculation History</h3>
-            <div className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
-              style={{ position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', height: '100%', background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-primary)', padding: '20px', transition: '0.3s', zIndex: 100 }}
-            >
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h3>Calculation History</h3>
-                <button onClick={() => setIsHistoryOpen(false)} style={{ cursor: 'pointer' }}>✕</button>
-              </div>
+          className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
+          style={{ 
+            position: 'fixed', 
+            right: isHistoryOpen ? '0' : '-400px', 
+            top: 0, 
+            width: '400px', 
+            height: '100vh', 
+            background: 'var(--bg-secondary)', 
+            borderLeft: '1px solid var(--border-primary)', 
+            padding: '24px', 
+            transition: '0.3s ease-in-out', 
+            zIndex: 1001 // Сделаем еще выше, чем у хедера (хедер был 1000)
+          }}
+        >
+          
+          <h3 style={{fontSize: '17px' }}>Calculation History</h3>
+           <div 
+            className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
+            style={{ 
+              position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', 
+              height: '100vh', background: '#ffffff', borderLeft: '1px solid #e2e8f0', 
+              padding: '24px', transition: '0.3s cubic-bezier(0.4, 0, 0.2, 1)', zIndex: 1001,
+              boxShadow: '-4px 0 15px rgba(0,0,0,0.05)'
+            }}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+              <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>Calculation History</h3>
+              <button onClick={() => setIsHistoryOpen(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+            </div>
 
-              <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', marginTop: '20px' }}>
-                {history.map((item) => (
-                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #eee' }}>
-                    
-                   {/* ЗОНА 1: Название (только там, где есть текст) */}
+            <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {history.map((item) => (
+                <div 
+                  key={item.id} 
+                  style={{ 
+                    background: '#f8fafc', 
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '16px', 
+                    padding: '16px 20px',
+                    display: 'flex', 
+                    alignItems: 'center', 
+                    justifyContent: 'space-between',
+                    transition: 'transform 0.2s, border-color 0.2s'
+                  }}
+                >
+                  {/* Название */}
+                  <span 
+                    onClick={() => handleRename(item.id)} 
+                    style={{ fontWeight: '600', fontSize: '16px', cursor: 'text', color: '#1e293b' }}
+                  >
+                    {item.title || "Без названия"}
+                  </span>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    {/* Процент */}
                     <span 
-                      onClick={() => handleRename(item.id)} 
-                      style={{ cursor: 'text', fontWeight: '500', marginRight: '10px', whiteSpace: 'nowrap' }}
+                      onClick={() => loadIntoCalculator(item)} 
+                      style={{ 
+                        background: '#eff6ff', 
+                        color: '#3b82f6', 
+                        padding: '6px 12px', 
+                        borderRadius: '8px', 
+                        fontWeight: '700',
+                        cursor: 'pointer' 
+                      }}
                     >
-                      {item.title || "Без названия"}
+                      {item.total_percent}%
                     </span>
 
-                    {/* ЗОНА 2: Загрузка (Растягиваем на всё свободное пространство) */}
-                    <div 
-                      onClick={() => loadIntoCalculator(item)} 
-                      style={{ flexGrow: 1, cursor: 'pointer', textAlign: 'right', marginRight: '15px' }}
-                    >
-                      <strong style={{ fontWeight: 'bold' }}>{item.total_percent}%</strong>
-                    </div>
-
-                    {/* Кнопка удаления */}
+                    {/* Удаление */}
                     <button 
                       onClick={(e) => { e.stopPropagation(); deleteHistoryItem(item.id); }} 
-                      style={{ cursor: 'pointer', border: 'none', background: 'none', fontSize: '18px', color: '#ff4d4f' }}
+                      style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
                     >
                       &times;
                     </button>
                   </div>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
-    </div>
-      </div>
+          </div>
+              </div>
+                </div>
   );
 };
+<style>{`
+      @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-5px); }
+        to { opacity: 1; transform: translateY(0); }
+      }
+    `}</style>
