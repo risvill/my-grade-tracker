@@ -1,33 +1,36 @@
 export const SafetyNetWidget = ({ rkAverage, examWeight = 0.4 }: { rkAverage: number, examWeight?: number }) => {
-  // Пороги (можешь менять их под свои требования)
-  const THRESHOLD_2 = 50; 
-  const THRESHOLD_3 = 70; 
+  // Пороги: 50% - это "двойка" (минимальный проходной), 70% - это "тройка" (порог четверки)
+  const MIN_FOR_PASS = 50; 
+  const MIN_FOR_FOUR = 70; 
   
   const calculateNeeded = (threshold: number) => {
+    // Формула: (Порог - (Среднее РК * 0.6)) / 0.4
     const needed = (threshold - (rkAverage * 0.6)) / examWeight;
+    // Ограничиваем от 0 до 100
     return Math.max(0, Math.min(100, needed)).toFixed(1);
   };
 
-  const neededFor2 = calculateNeeded(THRESHOLD_2);
-  const neededFor3 = calculateNeeded(THRESHOLD_3);
-  
+  const scoreForPass = calculateNeeded(MIN_FOR_PASS); // Чтобы не получить 2
+  const scoreForFour = calculateNeeded(MIN_FOR_FOUR); // Чтобы не получить 3 (выйти на 4)
 
   return (
     <section className="card" style={{ marginTop: '20px' }}>
       <h3 style={{ marginBottom: '15px' }}>🛡️ Safety Net</h3>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {/* Блок для 2 */}
+        {/* Блок: Как избежать 2 */}
         <div style={{ background: 'var(--bg-primary)', padding: '15px', borderRadius: '12px' }}>
           <p style={{ margin: 0 }}>
-            Чтобы <strong>не получить 2</strong>: нужно набрать <strong>{neededFor2}%</strong> на экзамене.
+            Чтобы <strong>избежать оценки 2</strong> (минимум 50%): 
+            нужно набрать <strong>{scoreForPass}%</strong> на экзамене.
           </p>
         </div>
 
-        {/* Блок для 3 */}
+        {/* Блок: Как избежать 3 */}
         <div style={{ background: 'var(--bg-primary)', padding: '15px', borderRadius: '12px' }}>
           <p style={{ margin: 0 }}>
-            Чтобы <strong>не получить 3</strong> (выйти на 4): нужно набрать <strong>{neededFor3}%</strong> на экзамене.
+            Чтобы <strong>избежать оценки 3</strong> (выйти на 4, минимум 70%): 
+            нужно набрать <strong>{scoreForFour}%</strong> на экзамене.
           </p>
         </div>
       </div>

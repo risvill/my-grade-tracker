@@ -1,16 +1,33 @@
-import { useState } from 'react';
+export const PredictorWidget = ({ subject, target }: { subject: any, target: number }) => {
+  const rkAvg = (Number(subject.rk1) + Number(subject.rk2)) / 2;
+  const currentTotal = (rkAvg * 0.6); // Это то, что уже есть (60% от итоговой)
 
-export const PredictorWidget = ({ subject }: { subject: any }) => {
-  if (!subject) return <p>Выберите предмет для прогноза</p>;
+  // Пороги (диапазоны)
+  const ranges: Record<number, { min: number, max: number }> = {
+    3: { min: 50, max: 69 },
+    4: { min: 70, max: 89 },
+    5: { min: 90, max: 100 }
+  };
 
-  // Берем оценки из выбранного объекта предмета
-  const currentTotal = ((Number(subject.rk1) + Number(subject.rk2)) / 2) * 0.6 + Number(subject.exam) * 0.4;
+  const getNeededScore = (targetPercent: number) => {
+    const needed = (targetPercent - currentTotal) / 0.4;
+    return Math.max(0, Math.min(100, needed)).toFixed(1);
+  };
+
+  const minNeeded = getNeededScore(ranges[target].min);
+  const maxNeeded = getNeededScore(ranges[target].max);
 
   return (
-    <section className="card">
-      <h3>Прогноз для: {subject.title}</h3>
-      <p>Текущий балл: <strong>{currentTotal.toFixed(1)}%</strong></p>
-      {/* Здесь будет логика расчета, сколько нужно добрать до цели */}
+    <section className="card" style={{ marginTop: '20px' }}>
+      <div style={{ background: 'var(--bg-primary)', padding: '20px', borderRadius: '16px' }}>
+        <p>Для оценки <strong>{target}</strong> вам нужно набрать на экзамене:</p>
+        <h2 style={{ color: 'var(--accent-primary)' }}>
+          от {minNeeded}% до {maxNeeded}%
+        </h2>
+        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+          * При условии, что средний балл РК: {rkAvg.toFixed(1)}%
+        </p>
+      </div>
     </section>
   );
 };
