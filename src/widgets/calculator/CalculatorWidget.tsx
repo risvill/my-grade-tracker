@@ -28,6 +28,44 @@ const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
 const gradeInfo = getGradeInfo(total);
 
+const getBackgroundColor = (letter: string) => {
+  if (letter === 'A' || letter === 'A-') return '#38a169'; // Зеленый (5)
+  if (letter.startsWith('B')) return '#dd6b20';            // Оранжевый (4)
+  if (letter.startsWith('C')) return '#e53e3e';            // Красный (3)
+  return '#c05621';                                        // Темно-оранжевый (2)
+};
+
+// ... внутри твоего компонента:
+const backgroundColor = getBackgroundColor(gradeInfo.letter);
+
+
+
+const togglePin = async (id: string) => {
+  // 1. Находим элемент в текущем списке, чтобы знать его текущее состояние
+  const item = history.find(i => i.id === id);
+  if (!item) return;
+
+  const newPinnedStatus = !item.is_pinned; // Используем имя колонки из БД
+
+  // 2. Делаем запрос к таблице 'grades'
+  const { error } = await supabase
+    .from('grades') 
+    .update({ is_pinned: newPinnedStatus }) 
+    .eq('id', id);
+
+  if (error) {
+    console.error("Ошибка при обновлении статуса закрепления:", error);
+    return;
+  }
+
+  // 3. Обновляем локальный стейт, чтобы UI перерисовался мгновенно
+  setHistory(prevHistory => 
+  prevHistory.map(i => 
+    i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
+  )
+);
+};
+
 const getScoreColor = (score: any) => {
   const num = Number(score);
   if (!score || num < 50) return '#e53e3e'; // Красный (ниже 50 или пусто)
@@ -212,7 +250,7 @@ const insertNewRecord = async (baseName: string) => {
 
   return (
     <div id="wrapper">
-      <main className="layout" style={{ marginTop: '20px' }}>
+      <main className="layout" >
         <section style={{ 
           background: 'var(--bg-secondary)', 
           padding: '30px', 
@@ -221,7 +259,7 @@ const insertNewRecord = async (baseName: string) => {
           width:'100%',
           maxWidth: '850px',
           boxShadow: 'var(--card-shadow)', 
-          marginBottom: '30px' 
+          marginBottom: '24px' 
         }}>
           {/* Красивая карточка с GPA и прогресс-баром */}
           <div style={{ 
@@ -241,13 +279,14 @@ const insertNewRecord = async (baseName: string) => {
               
               {/* Квадратик с оценкой */}
               <div style={{ 
-                background: '#38a169', 
+                background: backgroundColor, // Цвет готов!
                 color: 'white', 
                 padding: '10px 18px', 
                 borderRadius: '12px', 
                 fontWeight: 'bold',
                 fontSize: '20px'
               }}>
+                {/* Здесь выводишь то, что нужно (цифру или букву) */}
                 {gradeInfo.letter === 'A' || gradeInfo.letter === 'A-' ? '5' : 
                 gradeInfo.letter.startsWith('B') ? '4' : 
                 gradeInfo.letter.startsWith('C') ? '3' : '2'}
@@ -259,7 +298,7 @@ const insertNewRecord = async (baseName: string) => {
               <div style={{ 
                 width: `${Math.min(Math.max(total, 0), 100)}%`, 
                 height: '100%', 
-                background: '#38a169', 
+                background: backgroundColor, 
                 borderRadius: '4px',
                 transition: 'width 0.3s ease'
               }} />
@@ -276,7 +315,7 @@ const insertNewRecord = async (baseName: string) => {
             borderRadius: '20px', 
             width: '100%', 
             maxWidth: '850px', 
-            margin: '0 auto 30px auto', 
+            margin: '0 auto 24px auto', 
             border: '1px solid #e2e8f0',
             boxShadow: 'var(--card-shadow)', 
           }}>
@@ -347,7 +386,8 @@ const insertNewRecord = async (baseName: string) => {
                   gap: '20px',               // Расстояние между блоками (уменьши до 10px, если хочешь еще ближе)
                   width: '100%',
                   maxWidth: '1200px',        // Ограничиваем общую ширину, чтобы не разлетались
-                  margin: '0 auto'           // Центрируем сам контейнер на странице
+                  margin: '0 auto',
+                  marginBottom: '24px'          // Центрируем сам контейнер на странице
                 }}>
                   <div style={{ flex: '1', maxWidth: '600px' }}>
                   <section style={{ height: '257.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
@@ -497,34 +537,57 @@ const insertNewRecord = async (baseName: string) => {
           </div>
 
           
-            {/* Блок с кнопками (Save/Reset) */}
-            <div style={{ marginTop: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '12px' }}>
+              {/* Режим выбора: Сохранить или Сбросить */}
               {saveStatus === 'idle' && (
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', gap: '12px', margin: '0 auto 20px', 
+                  width: '100%', 
+                  maxWidth: '850px',
+                  height: '42px' }}>
                   <button 
                     onClick={() => setSaveStatus('input')} 
-                    style={{ flex: 2, padding: '15px', background: 'var(--accent-primary)', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer' }}
+                    style={{ 
+                      flex: 2, padding: '10px', background: '#3b82f6', color: 'white', 
+                      borderRadius: '16px', border: 'none', cursor: 'pointer', fontSize: '16px', fontWeight: '600' 
+                    }}
                   >
                     Save Result
                   </button>
                   <button 
                     onClick={handleReset} 
-                    style={{ flex: 1, padding: '15px', background: '#fff', color: '#4a5568', borderRadius: '12px', border: '1px solid #cbd5e0', cursor: 'pointer' }}
+                    style={{ 
+                      flex: 1, background: '#ffffff', color: '#64748b', 
+                      borderRadius: '16px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '16px' 
+                    }}
                   >
                     Reset
                   </button>
                 </div>
               )}
 
-              {/* Остальные состояния (input, confirming, success) оставь как были, они отлично работают */}
+              {/* Режим ввода названия */}
               {saveStatus === 'input' && (
-                <div>
-                  <input placeholder="Введите название..." value={newSubjectName} onChange={(e) => setNewSubjectName(e.target.value)} />
-                  <button onClick={handleCheckExistence}>Проверить</button>
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <input 
+                    placeholder="Enter subject name..." 
+                    value={newSubjectName} 
+                    onChange={(e) => setNewSubjectName(e.target.value)}
+                    style={{ 
+                      flex: 1, padding: '14px', borderRadius: '16px', 
+                      border: '1px solid #e2e8f0', fontSize: '16px', outline: 'none' 
+                    }}
+                  />
+                  <button 
+                    onClick={handleCheckExistence}
+                    style={{ 
+                      padding: '14px 24px', background: '#10b981', color: 'white', 
+                      borderRadius: '16px', border: 'none', cursor: 'pointer', fontWeight: '600' 
+                    }}
+                  >
+                    Check
+                  </button>
                 </div>
               )}
-              {/* ... (остальные состояния) */}
-            </div>
+              
       </main>
 
       {/* Вынос истории за пределы MainLayout (если нужно) или управление через контекст */}
@@ -560,54 +623,92 @@ const insertNewRecord = async (baseName: string) => {
             </div>
 
             <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {history.map((item) => (
-                <div 
-                  key={item.id} 
-                  style={{ 
-                    background: '#f8fafc', 
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '16px', 
-                    padding: '16px 20px',
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'space-between',
-                    transition: 'transform 0.2s, border-color 0.2s'
-                  }}
-                >
-                  {/* Название */}
-                  <span 
-                    onClick={() => handleRename(item.id)} 
-                    style={{ fontWeight: '600', fontSize: '16px', cursor: 'text', color: '#1e293b' }}
-                  >
-                    {item.title || "Без названия"}
-                  </span>
+              {/* Сортируем: сначала закрепленные, потом остальные */}
+              {[...history]
+                .sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
+                .map((item) => {
+                  // Безопасное форматирование даты
+                  const formattedDate = item.created_at 
+                    ? new Date(item.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
+                    : "Дата неизвестна";
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-                    {/* Процент */}
-                    <span 
-                      onClick={() => loadIntoCalculator(item)} 
+                  return (
+                    <div 
+                      key={item.id} 
                       style={{ 
-                        background: '#eff6ff', 
-                        color: '#3b82f6', 
-                        padding: '6px 12px', 
-                        borderRadius: '8px', 
-                        fontWeight: '700',
-                        cursor: 'pointer' 
+                        background: item.is_pinned ? '#fefce8' : '#f8fafc',
+                        border: item.is_pinned ? '1px solid #fde047' : '1px solid #e2e8f0',
+                        borderRadius: '16px', 
+                        padding: '16px 20px',
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between',
+                        transition: 'all 0.2s ease'
                       }}
                     >
-                      {item.total_percent}%
-                    </span>
+                      {/* Название и дата */}
+                      <div 
+                        onClick={() => handleRename(item.id)} 
+                        style={{ cursor: 'text', display: 'flex', flexDirection: 'column', gap: '2px' }}
+                      >
+                        <span style={{ fontWeight: '600', fontSize: '16px', color: '#1e293b' }}>
+                          {item.title || "Без названия"}
+                        </span>
+                        <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                          {formattedDate}
+                        </span>
+                      </div>
 
-                    {/* Удаление */}
-                    <button 
-                      onClick={(e) => { e.stopPropagation(); deleteHistoryItem(item.id); }} 
-                      style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '18px' }}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                </div>
-              ))}
+                      {/* Правая панель: Закрепление, Процент, Удаление */}
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        
+
+                        <span onClick={() => loadIntoCalculator(item)} 
+                        style={{ 
+                          
+                          background: item.is_pinned ? '#f5f1c8' : '#eff6ff',
+                          color: item.is_pinned ? '#eab308' : '#3b82f6',
+                          padding: '6px 12px', 
+                          borderRadius: '8px', 
+                          fontWeight: '700' 
+                        }}>
+                          {item.total_percent}%
+                        </span>
+
+                        <button 
+                          onClick={() => togglePin(item.id)}
+                          style={{ 
+                            border: 'none', 
+                            background: 'none', 
+                            cursor: 'pointer', 
+                            fontSize: '15px',
+                            color: item.is_pinned ? '#eab308' : '#cbd5e1',
+                            padding: '0px'
+                          }}
+                        >
+                          📌
+                        </button>
+
+                        
+
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); deleteHistoryItem(item.id); }} 
+                          style={{ 
+                            border: 'none', 
+                            background: 'none', 
+                            color: '#ef4444', 
+                            cursor: 'pointer', 
+                            fontSize: '20px',
+                            padding: '4px'
+                          }}
+                        >
+                          &times;
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })
+              }
             </div>
           </div>
               </div>

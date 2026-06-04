@@ -16,7 +16,7 @@ export const MainLayout = () => {
         background: '#fff',
         position: 'sticky', top: 0, zIndex: 1000 
       }}>
-        <nav style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+        <nav style={{ display: 'flex', justifyContent: 'space-around', alignItems: 'center', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
           
           <div style={{ fontSize: '22px', fontWeight: '800', color: '#4a5568' }}>
             GradeMaster
@@ -45,11 +45,11 @@ export const MainLayout = () => {
               style={{ 
                 cursor: 'pointer',
                 fontSize: '15px',
-                background: '#ebf4ff', // Легкий голубой фон
+                background: '#3b82f6',
                 padding: '8px 20px',
                 borderRadius: '10px',
                 border: 'none',
-                color: '#3182ce',
+                color: 'white',
                 fontWeight: '600',
                 marginLeft: '12px'
               }}
