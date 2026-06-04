@@ -1,4 +1,4 @@
-import { CalculatorWidget } from "../../widgets/calculator/CalculatorWidget";
+import { CalculatorWidget } from "../widgets/calculator/CalculatorWidget";
 
 export const CalculatorPage = () => (
   <div className="page-wrapper">

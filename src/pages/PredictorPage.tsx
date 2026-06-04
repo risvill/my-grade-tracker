@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
-import { supabase } from "../../lib/supabaseClient";
-import { PredictorWidget } from "../../widgets/predictor/PredictorWidget";
-import { SafetyNetWidget } from "../../widgets/predictor/SafetyNetWidget";
-import {MetricsSection} from "../../widgets/predictor/MetricsSection"
+import { supabase } from "../lib/supabaseClient";
+import { PredictorWidget } from "../widgets/predictor/PredictorWidget";
+import { SafetyNetWidget } from "../widgets/predictor/SafetyNetWidget";
+import {MetricsSection} from "../widgets/predictor/MetricsSection"
 
 export const PredictorPage = () => {
   const [subjects, setSubjects] = useState<any[]>([]);

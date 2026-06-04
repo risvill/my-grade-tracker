@@ -1,7 +1,8 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "../src/layouts/MainLayout"; // Создадим ниже
-import { CalculatorPage } from "../src/pages/calculator/CalculatorPage";
-import { PredictorPage } from "../src/pages/predictor/PredictorPage";
+import { CalculatorPage } from "./pages/CalculatorPage";
+import { PredictorPage } from "./pages/PredictorPage";
+import { AnalyticsPage } from "./pages/AnalyticsPage";
 
 export default function App() {
   return (
@@ -11,6 +12,7 @@ export default function App() {
           <Route index element={<CalculatorPage />} />
           <Route path="calculator" element={<CalculatorPage />} />
           <Route path="predictor" element={<PredictorPage />} />
+          <Route path="analytics" element={<AnalyticsPage />} />
         </Route>
       </Routes>
     </BrowserRouter>

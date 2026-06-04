@@ -1,0 +1,21 @@
+.card {
+  background: var(--bg-secondary);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--border-primary);
+  width: 100%;
+  transition: background-color 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 14px;
+  }
+}
+
+@media (max-width: 480px) {
+  .card {
+    padding: 12px;
+  }
+}

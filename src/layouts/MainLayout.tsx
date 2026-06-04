@@ -13,6 +13,8 @@ export const MainLayout = () => {
           <div style={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
             <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/calculator">Калькулятор</Link>
             <Link style={{ color: 'var(--accent-primary)', fontSize: '15px' }} to="/predictor">Предиктор</Link>
+            {/* Новая вкладка */}
+            <Link style={{ color: 'var(--accent-primary)', fontSize: '15px'}} to="/analytics">Аналитика</Link>
             {/* Кнопка истории теперь здесь */}
             <button onClick={() => setIsHistoryOpen(true)}>История</button>
           </div>
