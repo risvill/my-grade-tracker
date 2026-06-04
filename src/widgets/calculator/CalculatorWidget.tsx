@@ -13,6 +13,11 @@ export const CalculatorWidget = () => {
   const [faGrades, setFaGrades] = useState<string[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
+const [targetId, setTargetId] = useState<number | null>(null);
+const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
+const [newSubjectName, setNewSubjectName] = useState(''); // Для ввода имени
+const [pendingName, setPendingName] = useState(''); // Имя, которое уже есть в базе
+
   const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
 
   const fetchHistory = async () => {
@@ -24,18 +29,67 @@ export const CalculatorWidget = () => {
     fetchHistory(); 
   }, []);
 
-  const handleSave = async () => {
-    const subjectName = prompt("Название предмета:");
-    if (!subjectName) return;
+const handleCheckExistence = async () => {
+  const { data } = await supabase.from('grades').select('id').eq('title', newSubjectName);
+  if (data && data.length > 0) {
+    setPendingName(newSubjectName);
+    setTargetId(data[0].id);
+    setSaveStatus('confirming');
+  } else {
+    await insertNewRecord(newSubjectName);
+    finishSave();
+  }
+};
 
-    const { error } = await supabase.from('grades').insert([{ 
-      title: subjectName, rk1, rk2, exam, total_percent: total.toFixed(1), fa_grades: faGrades 
-    }]);
-    
-    if (error) alert('Ошибка: ' + error.message);
-    else {
-      alert('Сохранено!');
-      fetchHistory(); // Обновляем список
+const finishSave = () => {
+  setSaveStatus('success');
+  fetchHistory();
+  setTimeout(() => {
+    setSaveStatus('idle');
+    setNewSubjectName('');
+  }, 2000); // Скрываем сообщение через 2 секунды
+};
+
+
+const insertNewRecord = async (baseName: string) => {
+  let finalName = baseName;
+  let counter = 2;
+
+  // Цикл: пока имя занято, пробуем добавить цифру
+  while (true) {
+    const { data } = await supabase
+      .from('grades')
+      .select('id')
+      .eq('title', finalName);
+
+    if (data && data.length > 0) {
+      // Имя занято, пробуем следующее (например, "Sabr 3")
+      finalName = `${baseName} ${counter}`;
+      counter++;
+    } else {
+      // Имя свободно, выходим из цикла
+      break;
+    }
+  }
+
+  // Теперь вставляем запись с найденным свободным именем
+  const { error } = await supabase.from('grades').insert([{ 
+    title: finalName, 
+    rk1, rk2, exam, 
+    total_percent: total.toFixed(1) 
+  }]);
+  
+  if (error) {
+    alert('Ошибка: ' + error.message);
+  } else {
+    finishSave();
+  }
+};
+
+ const handleUpdate = async () => {
+    if (targetId) {
+      await supabase.from('grades').update({ rk1, rk2, exam, total_percent: total.toFixed(1) }).eq('id', targetId);
+      finishSave();
     }
   };
 
@@ -63,9 +117,38 @@ export const CalculatorWidget = () => {
             <input className="input-field" type="number" placeholder="РК-1" value={rk1} onChange={(e) => setRk1(e.target.value)} />
             <input className="input-field" type="number" placeholder="РК-2" value={rk2} onChange={(e) => setRk2(e.target.value)} />
             <input className="input-field" type="number" placeholder="Экзамен" value={exam} onChange={(e) => setExam(e.target.value)} />
-            <button onClick={handleSave} style={{ width: '100%', padding: '15px', background: 'var(--accent-primary)', color: 'white', borderRadius: '12px', border: 'none', marginTop: '20px', cursor: 'pointer' }}>
-              Save Result
-            </button>
+            <div style={{ marginTop: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '12px' }}>
+  {saveStatus === 'idle' && (
+    <button onClick={() => setSaveStatus('input')} style={{ width: '100%', padding: '15px' }}>
+      Save Result
+    </button>
+  )}
+
+  {saveStatus === 'input' && (
+    <div>
+      <input 
+        placeholder="Введите название..." 
+        value={newSubjectName} 
+        onChange={(e) => setNewSubjectName(e.target.value)} 
+      />
+      <button onClick={handleCheckExistence}>Проверить</button>
+    </div>
+  )}
+
+  {saveStatus === 'confirming' && (
+    <div>
+            <p>Предмет <strong>{pendingName}</strong> уже есть. Обновить?</p>
+            <button onClick={handleUpdate}>Обновить</button>
+            <button onClick={() => insertNewRecord(pendingName)}>Создать новый</button>
+          </div>
+  )}
+
+  {saveStatus === 'success' && (
+    <div style={{ color: 'green', fontWeight: 'bold' }}>
+      ✅ Успешно сохранено!
+    </div>
+  )}
+</div>
           </section>
 
           <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
