@@ -419,21 +419,21 @@ const insertNewRecord = async (baseName: string) => {
                 {history.map((item) => (
                   <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #eee' }}>
                     
-                    {/* Редактирование названия */}
+                   {/* ЗОНА 1: Название (только там, где есть текст) */}
                     <span 
                       onClick={() => handleRename(item.id)} 
-                      style={{ cursor: 'text', fontWeight: '500' }}
+                      style={{ cursor: 'text', fontWeight: '500', marginRight: '10px', whiteSpace: 'nowrap' }}
                     >
                       {item.title || "Без названия"}
                     </span>
 
-                    {/* Загрузка в калькулятор */}
-                    <span 
+                    {/* ЗОНА 2: Загрузка (Растягиваем на всё свободное пространство) */}
+                    <div 
                       onClick={() => loadIntoCalculator(item)} 
-                      style={{ flexGrow: 1, cursor: 'pointer', fontWeight: 'bold', marginRight: '15px' }}
+                      style={{ flexGrow: 1, cursor: 'pointer', textAlign: 'right', marginRight: '15px' }}
                     >
-                      {item.total_percent}%
-                    </span>
+                      <strong style={{ fontWeight: 'bold' }}>{item.total_percent}%</strong>
+                    </div>
 
                     {/* Кнопка удаления */}
                     <button 
