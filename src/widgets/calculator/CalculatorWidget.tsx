@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
+import { getGradeInfo } from '../../utils/gradeConverter';
 
 export const CalculatorWidget = () => {
   // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
@@ -23,8 +24,11 @@ const [isSelectionMode, setIsSelectionMode] = useState(false); // Включен
 const [editingId, setEditingId] = useState<number | null>(null);
 
 const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
+const gradeInfo = getGradeInfo(total);
 
-  const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
+
+
 
   const fetchHistory = async () => {
     const { data } = await supabase.from('grades').select('*');
@@ -166,11 +170,60 @@ const insertNewRecord = async (baseName: string) => {
   return (
     <div id="wrapper">
       <main className="layout" style={{ marginTop: '40px' }}>
-        <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', boxShadow: 'var(--card-shadow)', marginBottom: '30px' }}>
-          <p style={{ color: 'var(--text-muted)' }}>Total Percent</p>
-          <h2 style={{ fontSize: '48px', margin: '10px 0' }}>{isNaN(total) ? 0 : total.toFixed(1)}%</h2>
+        <section style={{ 
+          background: 'var(--bg-secondary)', 
+          padding: '30px', 
+          borderRadius: '20px', 
+          boxShadow: 'var(--card-shadow)', 
+          marginBottom: '30px' 
+        }}>
+          {/* Красивая карточка с GPA и прогресс-баром */}
+          <div style={{ 
+            background: '#fff',
+            borderRadius: '16px', 
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div>
+                <div style={{ color: '#666', fontSize: '14px' }}>Total Percent</div>
+                <div style={{ fontSize: '32px', fontWeight: 'bold', margin: '5px 0' }}>
+                  {isNaN(total) ? '0.0' : total.toFixed(1)}%
+                </div>
+                <div style={{ color: '#4a5568', fontSize: '16px' }}>
+                  GPA: {gradeInfo.gpa} ({gradeInfo.letter})
+                </div>
+              </div>
+              
+              {/* Квадратик с оценкой */}
+              <div style={{ 
+                background: '#38a169', 
+                color: 'white', 
+                padding: '10px 18px', 
+                borderRadius: '12px', 
+                fontWeight: 'bold',
+                fontSize: '20px'
+              }}>
+                {gradeInfo.letter === 'A' || gradeInfo.letter === 'A-' ? '5' : 
+                gradeInfo.letter.startsWith('B') ? '4' : 
+                gradeInfo.letter.startsWith('C') ? '3' : '2'}
+              </div>
+            </div>
+            
+            {/* Прогресс бар */}
+            <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', marginTop: '20px' }}>
+              <div style={{ 
+                width: `${Math.min(Math.max(total, 0), 100)}%`, 
+                height: '100%', 
+                background: '#38a169', 
+                borderRadius: '4px',
+                transition: 'width 0.3s ease'
+              }} />
+            </div>
+            
+            <div style={{ textAlign: 'right', marginTop: '8px', fontSize: '12px', color: '#718096' }}>
+              {gradeInfo.label}
+            </div>
+          </div>
         </section>
-
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '40px' }}>
           <section style={{ background: 'var(--bg-secondary)', padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)' }}>
             <h3 style={{ marginBottom: '20px' }}>Summative Assessments</h3>
