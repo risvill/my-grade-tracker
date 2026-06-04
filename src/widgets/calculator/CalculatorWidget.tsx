@@ -29,6 +29,16 @@ const [pendingName, setPendingName] = useState(''); // Имя, которое у
     fetchHistory(); 
   }, []);
 
+
+const handleReset = () => {
+  setRk1('');
+  setRk2('');
+  setExam('');
+  setFaGrades([]);
+  setNewSubjectName('');
+  setSaveStatus('idle');
+};
+
 const handleCheckExistence = async () => {
   const { data } = await supabase.from('grades').select('id').eq('title', newSubjectName);
   if (data && data.length > 0) {
@@ -118,11 +128,22 @@ const insertNewRecord = async (baseName: string) => {
             <input className="input-field" type="number" placeholder="РК-2" value={rk2} onChange={(e) => setRk2(e.target.value)} />
             <input className="input-field" type="number" placeholder="Экзамен" value={exam} onChange={(e) => setExam(e.target.value)} />
             <div style={{ marginTop: '20px', padding: '20px', background: '#f9f9f9', borderRadius: '12px' }}>
-  {saveStatus === 'idle' && (
-    <button onClick={() => setSaveStatus('input')} style={{ width: '100%', padding: '15px' }}>
+ {saveStatus === 'idle' && (
+  <div style={{ display: 'flex', gap: '10px' }}>
+    <button 
+      onClick={() => setSaveStatus('input')} 
+      style={{ flex: 2, padding: '15px', background: 'var(--accent-primary)', color: 'white', borderRadius: '12px', border: 'none', cursor: 'pointer' }}
+    >
       Save Result
     </button>
-  )}
+    <button 
+      onClick={handleReset} 
+      style={{ flex: 1, padding: '15px', background: 'var(--bg-secondary)', color: 'var(--text-muted)', borderRadius: '12px', border: '1px solid var(--border-primary)', cursor: 'pointer' }}
+    >
+      Reset
+    </button>
+  </div>
+)}
 
   {saveStatus === 'input' && (
     <div>
