@@ -27,6 +27,20 @@ const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
 const gradeInfo = getGradeInfo(total);
 
+const deleteHistoryItem = async (id: number) => {
+  // 1. Удаляем из базы
+  const { error } = await supabase
+    .from('grades')
+    .delete()
+    .eq('id', id);
+
+  if (!error) {
+    // 2. Если удаление успешно — обновляем стейт в React
+    setHistory(history.filter(item => item.id !== id));
+  } else {
+    console.error("Ошибка удаления из БД:", error);
+  }
+};
 
 
 
@@ -39,6 +53,23 @@ const gradeInfo = getGradeInfo(total);
     fetchHistory(); 
   }, []);
 
+const handleRename = async (id: string) => {
+  const newName = prompt("Введите новое название:");
+  if (!newName) return;
+
+  const { data, error } = await supabase
+    .from('grades')
+    .update({ title: newName }) // <-- ЗАМЕНИ 'name' НА ТОЧНОЕ ИМЯ КОЛОНКИ ИЗ БАЗЫ
+    .eq('id', id);
+
+  if (error) {
+    console.error("Ошибка обновления:", error.message);
+    console.error("Детали:", error.details); // Это покажет, почему Bad Request
+    alert(`Ошибка: ${error.message}`);
+  } else {
+    setHistory(prev => prev.map(item => item.id === id ? { ...item, title: newName } : item));
+  }
+};
 const handleDeleteSelected = () => {
   setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
   setSelectedFaIds([]); // Сбрасываем выбор
@@ -140,6 +171,7 @@ const insertNewRecord = async (baseName: string) => {
   const { error } = await supabase.from('grades').insert([{ 
     title: finalName, 
     rk1, rk2, exam, 
+    fa_grades: faGrades,
     total_percent: total.toFixed(1) 
   }]);
   
@@ -152,7 +184,7 @@ const insertNewRecord = async (baseName: string) => {
 
  const handleUpdate = async () => {
     if (targetId) {
-      await supabase.from('grades').update({ rk1, rk2, exam, total_percent: total.toFixed(1) }).eq('id', targetId);
+      await supabase.from('grades').update({ rk1, rk2, exam, fa_grades: faGrades, total_percent: total.toFixed(1) }).eq('id', targetId);
       finishSave();
     }
   };
@@ -161,7 +193,9 @@ const insertNewRecord = async (baseName: string) => {
     setRk1(item.rk1?.toString() || '');
     setRk2(item.rk2?.toString() || '');
     setExam(item.exam?.toString() || '');
-    setFaGrades(item.fa_grades || []); 
+    setFaGrades(item.fa_grades || []);
+    setNewSubjectName(item.title);
+    setSaveStatus('idle'); // Возвращаем в обычный режим
     
     // Закрываем историю через контекст
     if (setIsHistoryOpen) setIsHistoryOpen(false);
@@ -372,17 +406,47 @@ const insertNewRecord = async (baseName: string) => {
         className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
         style={{ position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', height: '100%', background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-primary)', padding: '20px', transition: '0.3s', zIndex: 100 }}
       >
-        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '20px' }}>
           <h3>Calculation History</h3>
-          <button onClick={() => setIsHistoryOpen(false)}>✕</button>
-        </div>
-        {history.map(item => (
-          <div key={item.id} onClick={() => loadIntoCalculator(item)} style={{ padding: '15px', borderBottom: '1px solid var(--border-primary)', display: 'flex', justifyContent: 'space-between', cursor: 'pointer' }}>
-            <span>{item.title}</span>
-            <strong>{item.total_percent}%</strong>
-          </div>
-        ))}
-      </div>
+            <div className={`history-sidebar ${isHistoryOpen ? 'open' : ''}`} 
+              style={{ position: 'fixed', right: isHistoryOpen ? '0' : '-400px', top: 0, width: '400px', height: '100%', background: 'var(--bg-secondary)', borderLeft: '1px solid var(--border-primary)', padding: '20px', transition: '0.3s', zIndex: 100 }}
+            >
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <h3>Calculation History</h3>
+                <button onClick={() => setIsHistoryOpen(false)} style={{ cursor: 'pointer' }}>✕</button>
+              </div>
+
+              <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', marginTop: '20px' }}>
+                {history.map((item) => (
+                  <div key={item.id} style={{ display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #eee' }}>
+                    
+                    {/* Редактирование названия */}
+                    <span 
+                      onClick={() => handleRename(item.id)} 
+                      style={{ cursor: 'text', fontWeight: '500' }}
+                    >
+                      {item.title || "Без названия"}
+                    </span>
+
+                    {/* Загрузка в калькулятор */}
+                    <span 
+                      onClick={() => loadIntoCalculator(item)} 
+                      style={{ flexGrow: 1, cursor: 'pointer', fontWeight: 'bold', marginRight: '15px' }}
+                    >
+                      {item.total_percent}%
+                    </span>
+
+                    {/* Кнопка удаления */}
+                    <button 
+                      onClick={(e) => { e.stopPropagation(); deleteHistoryItem(item.id); }} 
+                      style={{ cursor: 'pointer', border: 'none', background: 'none', fontSize: '18px', color: '#ff4d4f' }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
     </div>
+      </div>
   );
 };
