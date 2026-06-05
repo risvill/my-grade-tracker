@@ -1,14 +1,14 @@
-import { useContext, useEffect, useState } from 'react';
-import { useOutletContext } from 'react-router-dom';
+import { useContext, useEffect, useState, useRef } from 'react';
+import { useOutletContext, useBlocker } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
-import { Pencil, Trash2, ArrowLeft, History, } from 'lucide-react';
+import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';
 
 export const CalculatorWidget = () => {
   // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
-const { activeSubject, setActiveSubject } = useContext(SubjectContext);
+const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(SubjectContext);
   const [name, setName] = useState(''); // Добавь это, чтобы setName работал
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
@@ -17,7 +17,8 @@ const { activeSubject, setActiveSubject } = useContext(SubjectContext);
 const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
-const [targetId, setTargetId] = useState<number | null>(null);
+const [targetId, setTargetId] = useState<string | null>(null); 
+const targetIdRef = useRef<string | null>(null); 
 const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
 const [newSubjectName, setNewSubjectName] = useState(''); // Для ввода имени
 const [pendingName, setPendingName] = useState(''); // Имя, которое уже есть в базе
@@ -33,27 +34,55 @@ const faAvg = faGrades.length > 0
   : 0;
 const gradeInfo = getGradeInfo(total);
 
+
+const [isDirty, setIsDirty] = useState(false);
 const getBackgroundColor = (letter: string) => {
   if (letter === 'A' || letter === 'A-') return '#38a169'; // Зеленый (5)
   if (letter.startsWith('B')) return '#dd6b20';            // Оранжевый (4)
   if (letter.startsWith('C')) return '#e53e3e';            // Красный (3)
   return '#c05621';                                        // Темно-оранжевый (2)
 };
+const handleInputChange = (setter: Function, value: string) => {
+  setter(value);
+  setIsDirty(true); // Пользователь начал что-то менять!
+};
 
+let blocker = useBlocker(
+    ({ currentLocation, nextLocation }) =>
+      isDirty && currentLocation.pathname !== nextLocation.pathname
+  );
 
 useEffect(() => {
-  if (activeSubject) {
-    setName(activeSubject.title || '');
-    setRk1(activeSubject.rk1?.toString() || '');
-    setRk2(activeSubject.rk2?.toString() || '');
-    setExam(activeSubject.exam?.toString() || '');
-    setTargetId(Number(activeSubject.id));
 
+  if (activeSubject && activeSubject.id) {
+    const id = String(activeSubject.id); // Просто берем строку как есть
+    
+    setTargetId(id);
+    targetIdRef.current = id;
+    console.log("DEBUG: UUID успешно сохранен:", id);
+
+    // 2. Устанавливаем остальные поля
+    setName(activeSubject.title || '');
+    setRk1(activeSubject.rk1 !== null && activeSubject.rk1 !== undefined ? activeSubject.rk1.toString() : '');
+    setRk2(activeSubject.rk2 !== null && activeSubject.rk2 !== undefined ? activeSubject.rk2.toString() : '');
+    setExam(activeSubject.exam !== null && activeSubject.exam !== undefined ? activeSubject.exam.toString() : '');
+    
     if (activeSubject.fa_grades) {
-        setFaGrades(activeSubject.fa_grades);
+      setFaGrades(activeSubject.fa_grades);
     }
   }
 }, [activeSubject]);
+useEffect(() => {
+  const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+    if (isDirty) {
+      e.preventDefault();
+      e.returnValue = ''; // Браузер сам покажет стандартное окно подтверждения
+    }
+  };
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+}, [isDirty]);
 
 // ... внутри твоего компонента:
 const backgroundColor = getBackgroundColor(gradeInfo.letter);
@@ -257,13 +286,19 @@ const insertNewRecord = async (baseName: string) => {
   }
 };
 
- const handleUpdate = async () => {
-  if (!targetId) return;
+const handleUpdate = async () => {
+  const currentId = targetIdRef.current; // Берем из "долговременной памяти"
 
-  // Функция для преобразования пустоты в null
+  console.log("DEBUG: Попытка сохранения, ID из ref:", currentId);
+
+  if (!currentId) {
+    console.error("КРИТИЧЕСКАЯ ОШИБКА: ID пропал!");
+    return;
+  }
+
   const formatValue = (val: any) => {
-    if (val === "" || val === undefined || val === null) return null;
-    return Number(val);
+    const num = Number(val);
+    return (val === "" || val === undefined || val === null || isNaN(num)) ? null : num;
   };
 
   const updateData = {
@@ -271,24 +306,25 @@ const insertNewRecord = async (baseName: string) => {
     rk2: formatValue(rk2),
     exam: formatValue(exam),
     fa_grades: faGrades,
-    total_percent: total.toFixed(1)
+    total_percent: Number(total.toFixed(1)) // Приводим к числу
   };
 
   try {
     const { error } = await supabase
       .from('grades')
       .update(updateData)
-      .eq('id', targetId);
+      .eq('id', currentId); 
 
     if (error) throw error;
     
     finishSave();
-    console.log("Данные успешно обновлены с учетом null");
+    updateSubjectInContext(updateData);
+    setIsDirty(false);
+    console.log("Данные успешно обновлены!");
   } catch (err) {
     console.error("Ошибка при обновлении:", err);
   }
 };
-
   const loadIntoCalculator = (item: any) => {
     setRk1(item.rk1?.toString() || '');
     setRk2(item.rk2?.toString() || '');
@@ -304,6 +340,20 @@ const insertNewRecord = async (baseName: string) => {
 
   return (
     <div id="wrapper">
+      {blocker.state === "blocked" && (
+        <div className="modal">
+          <div className="modal-content">
+            <h3>Несохраненные данные</h3>
+            <p>Вы внесли изменения. Хотите сохранить их перед выходом?</p>
+            
+            <div className="modal-buttons">
+              <button onClick={async () => { await handleUpdate();setIsDirty(false); blocker.proceed(); }}>Сохранить</button>
+              <button onClick={() => blocker.proceed()}>Выйти</button>
+              <button onClick={() => blocker.reset()}>Отмена</button>
+            </div>
+          </div>
+        </div>
+      )}
       <main className="layout" >
         <section style={{ 
           background: 'var(--bg-secondary)', 
@@ -385,14 +435,18 @@ const insertNewRecord = async (baseName: string) => {
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <input 
                     type="number" 
-                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    className="score-input" 
+                    min="0" 
+                    max="100"
                     value={rk1} 
-                    onChange={(e) => setRk1(e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange(setRk1, e.target.value);
+                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
+                      setRk1(val.toString());
+                    }}
                     placeholder="Score"
                     style={{ 
-                      // Динамически меняем рамку в зависимости от значения
-                      borderColor: getScoreColor(rk1),
-                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
+                      borderColor: getScoreColor(rk1)
                     }}
                   />
                   <span style={{ color: '#94a3b8' }}>/</span>
@@ -412,8 +466,14 @@ const insertNewRecord = async (baseName: string) => {
                   <input 
                     type="number" 
                     className="score-input" // твой класс из global.scss для формы и фокуса
+                    min="0" 
+                    max="100"
                     value={rk2} 
-                    onChange={(e) => setRk2(e.target.value)}
+                    onChange={(e) => {
+                      handleInputChange(setRk1, e.target.value);
+                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
+                      setRk2(val.toString());
+                    }}
                     placeholder="Score"
                     style={{ 
                       // Динамически меняем рамку в зависимости от значения
@@ -531,8 +591,14 @@ const insertNewRecord = async (baseName: string) => {
                 <input 
                   className="score-input" 
                   placeholder='Score'
-                  value={currentFa} 
-                  onChange={(e) => setCurrentFa(e.target.value)} 
+                  min="0" 
+                  max="100"
+                  value={currentFa}
+                  onChange={(e) => {
+                    handleInputChange(setRk1, e.target.value);
+                    let val = Math.max(0, Math.min(100, Number(e.target.value)));
+                    setCurrentFa(val.toString());
+                  }}
                   style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
                 />
                 <button 
@@ -569,9 +635,15 @@ const insertNewRecord = async (baseName: string) => {
                 <div style={{ display: 'flex', padding: '10px',alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <input 
                     type="number" 
-                    className="score-input" 
-                    value={exam} 
-                    onChange={(e) => setExam(e.target.value)}
+                    className='score-input'
+                    min="0" 
+                    max="100"
+                    value={exam}
+                    onChange={(e) => {
+                      handleInputChange(setRk1, e.target.value);
+                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
+                      setExam(val.toString());
+                    }}
                     placeholder="Score"
                     style={{ 
                       borderColor: getScoreColor(rk1),
@@ -637,7 +709,8 @@ const insertNewRecord = async (baseName: string) => {
                   <input 
                     placeholder="Enter subject name..." 
                     value={newSubjectName} 
-                    onChange={(e) => setNewSubjectName(e.target.value)}
+                    onChange={(e) => {handleInputChange(setRk1, e.target.value);
+                      setNewSubjectName(e.target.value)}}
                     style={{ 
                       flex: 1, padding: '14px', borderRadius: '16px', 
                       border: '1px solid #e2e8f0', fontSize: '16px', outline: 'none' 

@@ -298,6 +298,57 @@ section {
   width: 100%;
 }
 
+/* Затемняющий фон */
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5); /* Полупрозрачный черный */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999; /* Чтобы было поверх всех элементов */
+  backdrop-filter: blur(4px); /* Легкое размытие фона (эффект стекла) */
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+/* Контейнер самого окна */
+.modal-content {
+  background: white;
+  padding: 30px;
+  border-radius: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Кнопки внутри модалки */
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  margin-top: 10px;
+
+  button {
+    padding: 10px 20px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+  }
+}
+
+/* Анимация появления */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
 
 /* Добавь это в конец твоего globals.scss */
 .history-sidebar {

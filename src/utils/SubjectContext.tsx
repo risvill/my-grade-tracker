@@ -1,28 +1,35 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 
-// 1. Опиши тип предмета (подставь свои поля)
 interface Subject {
   id: string | number;
   title: string;
   total_percent: number | string;
-  // Добавь сюда недостающие поля:
   rk1: number | string; 
   rk2: number | string;
   exam: number | string;
-  fa_grades: any; // или укажи точный тип, если знаешь
-  // и любые другие поля, которые ты используешь
+  fa_grades: any; 
 }
 
-// 2. Создай интерфейс для самого контекста
+type SubjectData = { 
+  rk1?: number | null; 
+  rk2?: number | null; 
+  exam?: number | null; 
+  fa_grades?: any;
+  total_percent?: number;
+};
+
+
 interface SubjectContextType {
   activeSubject: Subject | null;
   setActiveSubject: (subject: Subject | null) => void;
+  updateSubjectInContext: (data: SubjectData) => void;
 }
 
-// 3. Создай контекст с правильным типом (используй undefined или пустой объект как дефолт)
+
 export const SubjectContext = createContext<SubjectContextType>({
   activeSubject: null,
   setActiveSubject: () => {},
+  updateSubjectInContext: () => {}
 });
 
 export const SubjectProvider = ({ children }: { children: ReactNode }) => {
@@ -32,11 +39,18 @@ export const SubjectProvider = ({ children }: { children: ReactNode }) => {
     return saved ? JSON.parse(saved) : null;
   });
 
+  const updateSubjectInContext = (data: SubjectData) => {
+  setActiveSubject((prev: any) => ({
+    ...prev,
+    ...data
+  }));
+  };
+
   useEffect(() => {
     sessionStorage.setItem('activeSubject', JSON.stringify(activeSubject));
   }, [activeSubject]);
   return (
-    <SubjectContext.Provider value={{ activeSubject, setActiveSubject }}>
+    <SubjectContext.Provider value={{ activeSubject, setActiveSubject, updateSubjectInContext }}>
       {children}
     </SubjectContext.Provider>
   );
