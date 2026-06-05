@@ -11,6 +11,7 @@ interface Subject {
 }
 
 type SubjectData = { 
+  id: string;
   rk1?: number | null; 
   rk2?: number | null; 
   exam?: number | null; 

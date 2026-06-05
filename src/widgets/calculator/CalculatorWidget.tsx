@@ -34,6 +34,15 @@ const faAvg = faGrades.length > 0
   : 0;
 const gradeInfo = getGradeInfo(total);
 
+// Ставим эту функцию в область видимости компонента или импортируем
+const formatScore = (val: any) => {
+  // Если это пустая строка, undefined или null — возвращаем null для базы
+  if (val === "" || val === undefined || val === null || val === "NaN") {
+    return null;
+  }
+  const num = Number(val);
+  return isNaN(num) ? null : num;
+};
 
 const [isDirty, setIsDirty] = useState(false);
 const getBackgroundColor = (letter: string) => {
@@ -271,10 +280,10 @@ const insertNewRecord = async (baseName: string) => {
   // Теперь вставляем запись с найденным свободным именем
   const newRecord = {
     title: finalName,
-    rk1: Number(rk1),           // Убедись, что это числа
-    rk2: Number(rk2),
-    exam: Number(exam),
-    fa_grades: faGrades,        // Убедись, что тип соответствует колонке в БД
+    rk1: formatScore(rk1),   // Используем новый форматтер
+    rk2: formatScore(rk2),
+    exam: formatScore(exam),
+    fa_grades: faGrades || [],        // Убедись, что тип соответствует колонке в БД
     total_percent: parseFloat(total.toFixed(1)), // Преобразуем строку обратно в число
     is_pinned: false            // Добавь, если эта колонка обязательна
   };
@@ -341,7 +350,7 @@ const handleUpdate = async () => {
     rk1: formatValue(rk1),
     rk2: formatValue(rk2),
     exam: formatValue(exam),
-    fa_grades: faGrades,
+    fa_grades: Array.isArray(faGrades) ? faGrades : [],
     total_percent: Number(total.toFixed(1)) // Приводим к числу
   };
 
@@ -353,8 +362,8 @@ const handleUpdate = async () => {
 
     if (error) throw error;
     
+    updateSubjectInContext({ ...updateData, id: currentId });
     finishSave();
-    updateSubjectInContext(updateData);
     setIsDirty(false);
     console.log("Данные успешно обновлены!");
   } catch (err) {
