@@ -419,6 +419,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
           width:'100%',
           maxWidth: '850px',
           boxShadow: 'var(--card-shadow)', 
+          border: '1px solid #e2e8f0',
           marginBottom: '24px' 
         }}>
           {/* Красивая карточка с GPA и прогресс-баром */}

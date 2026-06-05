@@ -3,16 +3,16 @@ import { Target } from "lucide-react";
 
 export const ValidityWidget = ({ faGrades, rk1, rk2 }: { faGrades: number[], rk1: number, rk2: number }) => {
   const chartData = [
-    ...faGrades.map((g, i) => ({ name: `ФО ${i + 1}`, value: g })),
-    { name: 'РК 1', value: rk1 },
-    { name: 'РК 2', value: rk2 }
+    ...faGrades.map((g, i) => ({ name: `FA ${i + 1}`, value: g })),
+    { name: 'RK 1', value: rk1 },
+    { name: 'RK 2', value: rk2 }
   ];
 
   return (
     <div className="card" style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #e2e8f0' }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
         <Target size={20} color="#3b82f6" />
-        <h3 style={{ margin: 0 }}>Валидность текущих оценок</h3>
+        <h3 style={{ margin: 0 }}>Validity of Current Scores</h3>
       </div>
 
       <ResponsiveContainer width="100%" height={250}>
@@ -34,7 +34,7 @@ export const ValidityWidget = ({ faGrades, rk1, rk2 }: { faGrades: number[], rk1
           />
           <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={30}>
             {chartData.map((entry, index) => (
-              <Cell key={index} fill={entry.name.includes('РК') ? '#10b981' : '#3b82f6'} />
+              <Cell key={index} fill={entry.name.includes('RK') ? '#10b981' : '#3b82f6'} />
             ))}
           </Bar>
         </BarChart>

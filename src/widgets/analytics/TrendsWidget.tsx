@@ -2,7 +2,7 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tool
 import { TrendingUp } from "lucide-react";
 
 export const TrendsWidget = ({ faGrades }: { faGrades: number[] }) => {
-  const chartData = faGrades.map((g, i) => ({ name: `ФО ${i + 1}`, value: g }));
+  const chartData = faGrades.map((g, i) => ({ name: `FA ${i + 1}`, value: g }));
 
   return (
     <div className="card" style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #e2e8f0' }}>
@@ -18,7 +18,7 @@ export const TrendsWidget = ({ faGrades }: { faGrades: number[] }) => {
         <LineChart data={chartData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
           <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
           <XAxis dataKey="name" fontSize={12} tickLine={false} axisLine={false} />
-          <YAxis domain={[0, 10]} fontSize={12} tickLine={false} axisLine={false} />
+          <YAxis domain={[0, 100]} fontSize={12} tickLine={false} axisLine={false} />
           <Tooltip />
           <Line 
             type="monotone" 
