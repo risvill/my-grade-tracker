@@ -24,12 +24,12 @@ export const PredictorWidget = ({ subject: propSubject, target }: { subject?: an
   return (
     <section className="card" style={{ marginTop: '20px' }}>
       <div style={{ background: 'var(--bg-primary)', padding: '20px', borderRadius: '16px' }}>
-        <p>Для оценки <strong>{target}</strong> вам нужно набрать на экзамене:</p>
-        <h2 style={{ color: 'var(--accent-primary)' }}>
-          от {getNeededScore(ranges[target].min)}% до {getNeededScore(ranges[target].max)}%
+        <p style={{marginBottom: '8px'}}>To achieve <strong>{target}</strong> you have to pass:</p>
+        <h2 style={{ color: 'var(--accent-primary)', marginBottom: '5px' }}>
+          from {getNeededScore(ranges[target].min)}% to {getNeededScore(ranges[target].max)}%
         </h2>
-        <p style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
-          * При условии, что средний балл РК: {rkAvg.toFixed(1)}%
+        <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>
+          * If your avg score is: {rkAvg.toFixed(1)}%
         </p>
       </div>
     </section>

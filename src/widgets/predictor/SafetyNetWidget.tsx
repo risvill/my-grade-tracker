@@ -15,7 +15,6 @@ export const SafetyNetWidget = ({ rkAverage, examWeight = 0.4 }: { rkAverage: nu
 
   return (
     <section className="card" style={{ marginTop: '20px' }}>
-      <h3 style={{ marginBottom: '15px' }}>🛡️ Safety Net</h3>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
         {/* Блок: Как избежать 2 */}

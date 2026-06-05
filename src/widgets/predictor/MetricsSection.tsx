@@ -13,14 +13,14 @@ export const MetricsSection = ({ subject, target }: { subject: any, target: numb
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
       {/* Блок Margin of Error (упрощенный) */}
       <section className="card">
-        <h3>⚖️ Margin of Error</h3>
+        <h3>⚖️  Margin of Error</h3>
         <p>Чтобы достичь <strong>{target}</strong>, вам критически важно набрать на экзамене не менее <strong>{neededFromExam.toFixed(0)}%</strong>.</p>
         <p style={{ fontSize: '0.8rem', opacity: 0.7 }}>* Любой балл ниже этого уровня переведет вас в категорию ниже.</p>
       </section>
 
       {/* Блок Probability */}
       <section className="card">
-        <h3>📊 Probability of Success</h3>
+        <h3>📊  Probability of Success</h3>
         <div style={{ background: '#eee', height: '12px', borderRadius: '6px', margin: '15px 0' }}>
           <div style={{ 
             width: `${probability}%`, 

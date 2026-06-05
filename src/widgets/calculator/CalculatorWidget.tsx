@@ -239,11 +239,36 @@ const insertNewRecord = async (baseName: string) => {
 };
 
  const handleUpdate = async () => {
-    if (targetId) {
-      await supabase.from('grades').update({ rk1, rk2, exam, fa_grades: faGrades, total_percent: total.toFixed(1) }).eq('id', targetId);
-      finishSave();
-    }
+  if (!targetId) return;
+
+  // Функция для преобразования пустоты в null
+  const formatValue = (val: any) => {
+    if (val === "" || val === undefined || val === null) return null;
+    return Number(val);
   };
+
+  const updateData = {
+    rk1: formatValue(rk1),
+    rk2: formatValue(rk2),
+    exam: formatValue(exam),
+    fa_grades: faGrades,
+    total_percent: total.toFixed(1)
+  };
+
+  try {
+    const { error } = await supabase
+      .from('grades')
+      .update(updateData)
+      .eq('id', targetId);
+
+    if (error) throw error;
+    
+    finishSave();
+    console.log("Данные успешно обновлены с учетом null");
+  } catch (err) {
+    console.error("Ошибка при обновлении:", err);
+  }
+};
 
   const loadIntoCalculator = (item: any) => {
     setRk1(item.rk1?.toString() || '');
