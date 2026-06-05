@@ -36,8 +36,8 @@ export const AuthPage = () => {
     <div className={styles.authContainer}>
       <form onSubmit={handleAuth} className={styles.authForm}>
         <h2>{isLogin ? 'Вход в систему' : 'Регистрация'}</h2>
-        <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-        <input type="password" placeholder="Пароль" onChange={(e) => setPassword(e.target.value)} required />
+        <input className='score-input2' type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
+        <input className='score-input2' type="password" placeholder="Пароль" onChange={(e) => setPassword(e.target.value)} required />
         
         <button type="submit" disabled={loading}>
           {loading ? 'Загрузка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')}

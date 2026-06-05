@@ -20,3 +20,15 @@
   button { padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
   .toggle { cursor: pointer; font-size: 0.8rem; text-align: center; color: var(--text-muted); }
 }
+
+.score-input2 {
+  padding: 8px;
+  border-radius: 12px;
+  border: 2px solid #cbd5e0; /* Базовый серый цвет */
+  font-size: 15px;
+  transition: all 0.3s ease;
+  &:focus {
+    border-color: #3b82f6; /* Твой синий цвет */
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.38); /* Твой эффект тени */
+  }
+}
