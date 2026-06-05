@@ -1,28 +1,34 @@
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import { MainLayout } from "../src/layouts/MainLayout";
-import { CalculatorPage } from "./pages/CalculatorPage";
-import { PredictorPage } from "./pages/PredictorPage";
-import { AnalyticsPage } from "./pages/AnalyticsPage";
-import { SubjectProvider } from "./utils/SubjectContext";
-
-// Создаем конфигурацию роутов
-const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <MainLayout />,
-    children: [
-      { index: true, element: <Navigate to="/calculator" replace /> }, // Авто-редирект на калькулятор
-      { path: "calculator", element: <CalculatorPage /> },
-      { path: "predictor", element: <PredictorPage /> },
-      { path: "analytics", element: <AnalyticsPage /> },
-    ],
-  },
-]);
+import { useEffect, useState } from "react";
+import { RouterProvider } from "react-router-dom";
+import { supabase } from "./lib/supabaseClient";
+import type { Session } from '@supabase/supabase-js';
+import { router } from "./utils/router"; 
+import { AuthPage } from "./pages/AuthPage";
 
 export default function App() {
-  return (
-    <SubjectProvider>
-      <RouterProvider router={router} />
-    </SubjectProvider>
-  );
+  const [session, setSession] = useState<Session | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    console.log("App: проверка сессии...");
+    
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      console.log("App: результат сессии:", session);
+      setSession(session);
+      setLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      console.log("App: сессия изменилась:", session);
+      setSession(session);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  if (loading) return <div>Загрузка системы...</div>;
+
+  console.log("App: рендеринг, session есть?", !!session);
+
+  return !session ? <AuthPage /> : <RouterProvider router={router} />;
 }
