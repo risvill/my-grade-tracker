@@ -556,8 +556,45 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                   <div style={{ flex: '1', maxWidth: '600px' }}>
                   <section style={{ height: '257.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
                     <div style={{display: 'flex', justifyContent: 'space-between'}}>
+                      <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
                       <h3 style={{ flex: '1', margin: '8px' ,fontSize: '17px', fontWeight: '700', color: '#666' }}>Formative Assessment (FA)</h3>
-                      
+                       <div style={{ display: 'flex', gap: '10px',marginLeft: '15px'}}>
+                          <input 
+                            className="score-input" 
+                            placeholder='Score'
+                            min="0" 
+                            max="100"
+                            value={currentFa}
+                            onChange={(e) => {
+                              const val = e.target.value;
+                              if (val === "") {
+                                setCurrentFa(""); 
+                                handleInputChange(setCurrentFa, ""); 
+                              } else {
+                                const num = Math.max(0, Math.min(100, Number(val)));
+                                setCurrentFa(num.toString());
+                                handleInputChange(setCurrentFa, num.toString());
+                              }
+                            }}
+                            style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
+                          />
+                          <button 
+                            onClick={() => {
+                              if (!currentFa) return;
+                              if (editingId) {
+                                setFaGrades(faGrades.map(g => g.id === editingId ? { ...g, value: currentFa } : g));
+                                setEditingId(null);
+                              } else {
+                                setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]);
+                              }
+                              setCurrentFa('');
+                            }}
+                            style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: '600' }}
+                          >
+                            {editingId ? 'Update' : 'Add'}
+                          </button>
+                        </div>
+                      </div>
                       {selectedFaIds.length > 0 && (
                         <div   
                           key="action-panel" 
@@ -637,42 +674,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                       ))}
                     </div>
                     
-                  <div style={{ display: 'flex', gap: '10px', marginTop: '20px'}}>
-                <input 
-                  className="score-input" 
-                  placeholder='Score'
-                  min="0" 
-                  max="100"
-                  value={currentFa}
-                  onChange={(e) => {
-                    const val = e.target.value;
-                    if (val === "") {
-                      setCurrentFa(""); 
-                      handleInputChange(setCurrentFa, ""); 
-                    } else {
-                      const num = Math.max(0, Math.min(100, Number(val)));
-                      setCurrentFa(num.toString());
-                      handleInputChange(setCurrentFa, num.toString());
-                    }
-                  }}
-                  style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
-                />
-                <button 
-                  onClick={() => {
-                    if (!currentFa) return;
-                    if (editingId) {
-                      setFaGrades(faGrades.map(g => g.id === editingId ? { ...g, value: currentFa } : g));
-                      setEditingId(null);
-                    } else {
-                      setFaGrades([...faGrades, { id: Date.now(), value: currentFa }]);
-                    }
-                    setCurrentFa('');
-                  }}
-                  style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: '600' }}
-                >
-                  {editingId ? 'Update' : 'Add'}
-                </button>
-              </div>
+                 
           </section>
           </div>
 
@@ -687,7 +689,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 height: '257.5px',
                 boxShadow: 'var(--card-shadow)', 
               }}>
-                <h3 style={{ marginBottom: '15px', fontSize: '16px', fontWeight: '700', color: '#666' }}>Summative Assessment for Quarter</h3>
+                <h3 style={{ marginBottom: '10px', fontSize: '16px', fontWeight: '700', color: '#666' }}>Summative Assessment for Quarter</h3>
                 <div style={{ display: 'flex', padding: '10px',alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <input 
                     type="number" 
@@ -713,7 +715,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 </div>
                 {faGrades.length > 0 && (
                   <div style={{ 
-                    marginTop: '20px', 
+                    marginTop: '15px', 
                     padding: '16px', 
                     background: '#eff6ff', 
                     border: '1px solid #dbeafe', 
