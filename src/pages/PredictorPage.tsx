@@ -72,11 +72,17 @@ export const PredictorPage = () => {
       <h2 className="card_title">🎯 How to Reach Goal</h2>
       <PredictorWidget subject={activeSubject} target={target} />
 
-      <h2 className="card_title">🛡️ Safety Net</h2>
-      <SafetyNetWidget 
-         rkAverage={(Number(activeSubject.rk1 || 0) + Number(activeSubject.rk2 || 0)) / 2} 
-      />
-
+      {target !== 3 && (
+        <>
+          <h2 className="card_title">🛡️ Safety Net</h2>
+          <SafetyNetWidget 
+            rk1={activeSubject.rk1} 
+            rk2={activeSubject.rk2} 
+            exam={activeSubject.exam} 
+            target={target}
+          />
+        </>
+      )}
       <h2 className="card_title">Metrics</h2>
       <MetricsSection subject={activeSubject} target={target} />
     </div>
