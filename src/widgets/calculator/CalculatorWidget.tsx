@@ -34,7 +34,6 @@ const faAvg = faGrades.length > 0
   : 0;
 const gradeInfo = getGradeInfo(total);
 
-// Ставим эту функцию в область видимости компонента или импортируем
 const formatScore = (val: any) => {
   // Если это пустая строка, undefined или null — возвращаем null для базы
   if (val === "" || val === undefined || val === null || val === "NaN") {
@@ -45,6 +44,7 @@ const formatScore = (val: any) => {
 };
 
 const [isDirty, setIsDirty] = useState(false);
+
 const getBackgroundColor = (letter: string) => {
   if (letter === 'A' || letter === 'A-') return '#38a169'; // Зеленый (5)
   if (letter.startsWith('B')) return '#dd6b20';            // Оранжевый (4)
@@ -53,7 +53,7 @@ const getBackgroundColor = (letter: string) => {
 };
 const handleInputChange = (setter: Function, value: string) => {
   if (value === "") {
-    setter(""); // Это позволит полю быть действительно пустым (null-like)
+    setter(""); 
     return;
   }
   setIsDirty(true); // Пользователь начал что-то менять!
@@ -67,13 +67,12 @@ let blocker = useBlocker(
 useEffect(() => {
 
   if (activeSubject && activeSubject.id) {
-    const id = String(activeSubject.id); // Просто берем строку как есть
+    const id = String(activeSubject.id); 
     
     setTargetId(id);
     targetIdRef.current = id;
-    console.log("DEBUG: UUID успешно сохранен:", id);
 
-    // 2. Устанавливаем остальные поля
+  
     setName(activeSubject.title || '');
     setRk1(activeSubject.rk1 !== null && activeSubject.rk1 !== undefined ? activeSubject.rk1.toString() : '');
     setRk2(activeSubject.rk2 !== null && activeSubject.rk2 !== undefined ? activeSubject.rk2.toString() : '');
@@ -84,6 +83,8 @@ useEffect(() => {
     }
   }
 }, [activeSubject]);
+
+
 useEffect(() => {
   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
     if (isDirty) {
@@ -102,13 +103,11 @@ const backgroundColor = getBackgroundColor(gradeInfo.letter);
 
 
 const togglePin = async (id: string) => {
-  // 1. Находим элемент в текущем списке, чтобы знать его текущее состояние
   const item = history.find(i => i.id === id);
   if (!item) return;
 
-  const newPinnedStatus = !item.is_pinned; // Используем имя колонки из БД
+  const newPinnedStatus = !item.is_pinned; 
 
-  // 2. Делаем запрос к таблице 'grades'
   const { error } = await supabase
     .from('grades') 
     .update({ is_pinned: newPinnedStatus }) 
@@ -119,7 +118,6 @@ const togglePin = async (id: string) => {
     return;
   }
 
-  // 3. Обновляем локальный стейт, чтобы UI перерисовался мгновенно
   setHistory(prevHistory => 
   prevHistory.map(i => 
     i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
@@ -150,12 +148,16 @@ const deleteHistoryItem = async (id: number) => {
   }
 };
 
-
-
   const fetchHistory = async () => {
-    const { data } = await supabase.from('grades').select('*');
-    if (data) setHistory(data);
-  };
+    const { data} = await supabase
+      .from('grades')
+      .select('*')
+      .order('created_at', { ascending: false }); 
+
+    if (data) {
+      setHistory(data); 
+    }
+};
 
   useEffect(() => { 
     fetchHistory(); 
@@ -178,6 +180,7 @@ const handleRename = async (id: string) => {
     setHistory(prev => prev.map(item => item.id === id ? { ...item, title: newName } : item));
   }
 };
+
 const handleDeleteSelected = () => {
   setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
   setSelectedFaIds([]); // Сбрасываем выбор
@@ -193,7 +196,6 @@ const handleEditSelected = () => {
     setIsSelectionMode(false);
   }
 };
-
 
 const handlePressStart = (id: number) => {
   const timeout = setTimeout(() => {
@@ -238,7 +240,7 @@ const finishSave = () => {
   setTimeout(() => {
     setSaveStatus('idle');
     setNewSubjectName('');
-  }, 2000); // Скрываем сообщение через 2 секунды
+  }, 2000); 
 };
 
 
@@ -254,45 +256,46 @@ const handleCheckExistence = async () => {
   }
 };
 
-
-
 const insertNewRecord = async (baseName: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    alert("Ошибка: пользователь не авторизован");
+    return;
+  }
+
   let finalName = baseName;
   let counter = 2;
 
-  // Цикл: пока имя занято, пробуем добавить цифру
   while (true) {
     const { data } = await supabase
       .from('grades')
       .select('id')
-      .eq('title', finalName);
+      .eq('title', finalName)
+      .eq('user_id', user.id); 
 
     if (data && data.length > 0) {
-      // Имя занято, пробуем следующее (например, "Sabr 3")
       finalName = `${baseName} ${counter}`;
       counter++;
     } else {
-      // Имя свободно, выходим из цикла
       break;
     }
   }
 
-  // Теперь вставляем запись с найденным свободным именем
   const newRecord = {
     title: finalName,
-    rk1: formatScore(rk1),   // Используем новый форматтер
+    rk1: formatScore(rk1),
     rk2: formatScore(rk2),
     exam: formatScore(exam),
-    fa_grades: faGrades || [],        // Убедись, что тип соответствует колонке в БД
-    total_percent: parseFloat(total.toFixed(1)), // Преобразуем строку обратно в число
-    is_pinned: false            // Добавь, если эта колонка обязательна
+    fa_grades: faGrades || [],
+    total_percent: parseFloat(total.toFixed(1)),
+    is_pinned: false,
+    user_id: user.id 
   };
 
   const { error } = await supabase.from('grades').insert([newRecord]);
   
   if (error) {
     console.error("Ошибка Supabase:", error);
-    alert('Ошибка при сохранении: ' + error.message);
   } else {
     finishSave();
   }
@@ -322,10 +325,21 @@ const handleRk2Change = (val: string) => {
   }
 };
 
-const handleUpdate = async () => {
-  const currentId = targetIdRef.current; // Берем из "долговременной памяти"
+  const handleUpdate = async (idFromModal?: string) => {
+  const currentId = targetIdRef.current;
+  const { data: { user } } = await supabase.auth.getUser();
 
-  console.log("DEBUG: Попытка сохранения, ID из ref:", currentId);
+  // Добавляем логирование для отладки
+  console.log("--- DEBUG START ---");
+  console.log("ID из аргумента (modal):", idFromModal);
+  console.log("ID из Ref:", targetIdRef.current);
+  console.log("Юзер:", user);
+  console.log("--- DEBUG END ---");
+
+  if (!currentId || !user) {
+    alert(`Ошибка: Не выбран предмет. ID из Ref: ${targetIdRef.current}, ID из Modal: ${idFromModal}`);
+    return;
+  }
 
   if (!currentId) {
     console.error("КРИТИЧЕСКАЯ ОШИБКА: ID пропал!");
@@ -351,21 +365,21 @@ const handleUpdate = async () => {
     rk2: formatValue(rk2),
     exam: formatValue(exam),
     fa_grades: Array.isArray(faGrades) ? faGrades : [],
-    total_percent: Number(total.toFixed(1)) // Приводим к числу
+    total_percent: Number(total.toFixed(1))
   };
 
   try {
     const { error } = await supabase
       .from('grades')
       .update(updateData)
-      .eq('id', currentId); 
+      .eq('id', currentId)
+      .eq('user_id', user.id); 
 
     if (error) throw error;
     
     updateSubjectInContext({ ...updateData, id: currentId });
     finishSave();
     setIsDirty(false);
-    console.log("Данные успешно обновлены!");
   } catch (err) {
     console.error("Ошибка при обновлении:", err);
   }
@@ -381,19 +395,21 @@ const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateA
   }
 };
   const loadIntoCalculator = (item: any) => {
+    targetIdRef.current = item.id; 
+    console.log("DEBUG: ID предмета успешно записан в targetIdRef:", item.id);
     setRk1(item.rk1?.toString() || '');
     setRk2(item.rk2?.toString() || '');
     setExam(item.exam?.toString() || '');
     setFaGrades(item.fa_grades || []);
     setNewSubjectName(item.title);
-    setSaveStatus('idle'); // Возвращаем в обычный режим
+    setSaveStatus('idle'); 
     setActiveSubject(item);
     
-    // Закрываем историю через контекст
     if (setIsHistoryOpen) setIsHistoryOpen(false);
   };
 const isRk2Disabled = !rk1 || rk1 === ""; // РК2 закрыт, если нет РК1
 const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзамен закрыт, если нет РК1 или РК2
+
   return (
     <div id="wrapper">
       {blocker.state === "blocked" && (
@@ -403,7 +419,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
             <p>You have made some changes. Do you want to save them before leaving?</p>
             
             <div className="modal-buttons">
-              <button onClick={async () => { await handleUpdate(); setIsDirty(false); blocker.proceed(); }}>Save</button>
+              <button onClick={async () => { await handleUpdate(targetIdRef.current ?? undefined); setIsDirty(false); blocker.proceed(); }}>Save</button>
               <button onClick={() => blocker.proceed()}>Discard</button>
               <button onClick={() => blocker.reset()}>Cancel</button>
             </div>
@@ -802,7 +818,8 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                   
                   <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
                     <button 
-                      onClick={handleUpdate} 
+                      onClick={() => handleUpdate(targetIdRef.current ?? undefined)}
+                      
                       style={{ 
                         padding: '10px 20px', 
                         background: '#ef4444', 
@@ -926,8 +943,6 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
 
                       {/* Правая панель: Закрепление, Процент, Удаление */}
                       <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        
-
                         <span onClick={() => loadIntoCalculator(item)} 
                         style={{ 
                           cursor: 'pointer',
