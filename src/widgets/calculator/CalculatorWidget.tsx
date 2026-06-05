@@ -14,7 +14,7 @@ const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(S
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
   const [history, setHistory] = useState<any[]>([]);
-const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
+  const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
 const [targetId, setTargetId] = useState<string | null>(null); 
@@ -43,7 +43,10 @@ const getBackgroundColor = (letter: string) => {
   return '#c05621';                                        // Темно-оранжевый (2)
 };
 const handleInputChange = (setter: Function, value: string) => {
-  setter(value);
+  if (value === "") {
+    setter(""); // Это позволит полю быть действительно пустым (null-like)
+    return;
+  }
   setIsDirty(true); // Пользователь начал что-то менять!
 };
 
@@ -285,6 +288,30 @@ const insertNewRecord = async (baseName: string) => {
     finishSave();
   }
 };
+const handleRk1Change = (val: string) => {
+  const num = Number(val);
+  const validatedVal = val === "" ? "" : Math.max(0, Math.min(100, num)).toString();
+  setRk1(validatedVal);
+  handleInputChange(setRk1, validatedVal);
+  if (validatedVal === "") {
+    setRk2(""); // Очищаем РК2, если стерли РК1
+    setExam(""); // Очищаем Экзамен, если стерли РК1
+  }
+};
+
+const handleRk2Change = (val: string) => {
+
+  const num = Number(val);
+  const validatedVal = val === "" ? "" : Math.max(0, Math.min(100, num)).toString();
+  
+  setRk2(validatedVal);
+
+  handleInputChange(setRk2, validatedVal);
+  
+  if (validatedVal === "") {
+    setExam("");
+  }
+};
 
 const handleUpdate = async () => {
   const currentId = targetIdRef.current; // Берем из "долговременной памяти"
@@ -293,6 +320,15 @@ const handleUpdate = async () => {
 
   if (!currentId) {
     console.error("КРИТИЧЕСКАЯ ОШИБКА: ID пропал!");
+    return;
+  }
+
+  if (rk2 && !rk1) {
+    alert("Ошибка: Нельзя поставить РК2 без РК1!");
+    return;
+  }
+  if (exam && (!rk1 || !rk2)) {
+    alert("Ошибка: Нельзя поставить экзамен без РК1 и РК2!");
     return;
   }
 
@@ -325,6 +361,16 @@ const handleUpdate = async () => {
     console.error("Ошибка при обновлении:", err);
   }
 };
+
+const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateAction<any>>) => {
+  if (value === "") {
+    setter(""); 
+  } else {
+    
+    const num = Math.max(0, Math.min(100, Number(value)));
+    setter(num.toString());
+  }
+};
   const loadIntoCalculator = (item: any) => {
     setRk1(item.rk1?.toString() || '');
     setRk2(item.rk2?.toString() || '');
@@ -337,19 +383,20 @@ const handleUpdate = async () => {
     // Закрываем историю через контекст
     if (setIsHistoryOpen) setIsHistoryOpen(false);
   };
-
+const isRk2Disabled = !rk1 || rk1 === ""; // РК2 закрыт, если нет РК1
+const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзамен закрыт, если нет РК1 или РК2
   return (
     <div id="wrapper">
       {blocker.state === "blocked" && (
         <div className="modal">
           <div className="modal-content">
-            <h3>Несохраненные данные</h3>
-            <p>Вы внесли изменения. Хотите сохранить их перед выходом?</p>
+            <h3>Unsaved Changes</h3>
+            <p>You have made some changes. Do you want to save them before leaving?</p>
             
             <div className="modal-buttons">
-              <button onClick={async () => { await handleUpdate();setIsDirty(false); blocker.proceed(); }}>Сохранить</button>
-              <button onClick={() => blocker.proceed()}>Выйти</button>
-              <button onClick={() => blocker.reset()}>Отмена</button>
+              <button onClick={async () => { await handleUpdate(); setIsDirty(false); blocker.proceed(); }}>Save</button>
+              <button onClick={() => blocker.proceed()}>Discard</button>
+              <button onClick={() => blocker.reset()}>Cancel</button>
             </div>
           </div>
         </div>
@@ -439,11 +486,7 @@ const handleUpdate = async () => {
                     min="0" 
                     max="100"
                     value={rk1} 
-                    onChange={(e) => {
-                      handleInputChange(setRk1, e.target.value);
-                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
-                      setRk1(val.toString());
-                    }}
+                    onChange={(e) => {handleScoreChange(e.target.value, setRk1);handleRk1Change(e.target.value)}}
                     placeholder="Score"
                     style={{ 
                       borderColor: getScoreColor(rk1)
@@ -468,12 +511,9 @@ const handleUpdate = async () => {
                     className="score-input" // твой класс из global.scss для формы и фокуса
                     min="0" 
                     max="100"
-                    value={rk2} 
-                    onChange={(e) => {
-                      handleInputChange(setRk1, e.target.value);
-                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
-                      setRk2(val.toString());
-                    }}
+                    value={rk2}
+                    onChange={(e) => {handleScoreChange(e.target.value, setRk2);handleRk2Change(e.target.value)}}
+                    disabled={isRk2Disabled}
                     placeholder="Score"
                     style={{ 
                       // Динамически меняем рамку в зависимости от значения
@@ -595,9 +635,15 @@ const handleUpdate = async () => {
                   max="100"
                   value={currentFa}
                   onChange={(e) => {
-                    handleInputChange(setRk1, e.target.value);
-                    let val = Math.max(0, Math.min(100, Number(e.target.value)));
-                    setCurrentFa(val.toString());
+                    const val = e.target.value;
+                    if (val === "") {
+                      setCurrentFa(""); 
+                      handleInputChange(setCurrentFa, ""); 
+                    } else {
+                      const num = Math.max(0, Math.min(100, Number(val)));
+                      setCurrentFa(num.toString());
+                      handleInputChange(setCurrentFa, num.toString());
+                    }
                   }}
                   style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
                 />
@@ -636,14 +682,12 @@ const handleUpdate = async () => {
                   <input 
                     type="number" 
                     className='score-input'
-                    min="0" 
-                    max="100"
                     value={exam}
                     onChange={(e) => {
-                      handleInputChange(setRk1, e.target.value);
-                      let val = Math.max(0, Math.min(100, Number(e.target.value)));
-                      setExam(val.toString());
+                      handleInputChange(setExam, e.target.value);
+                      handleScoreChange(e.target.value, setExam);
                     }}
+                    disabled={isExamDisabled}
                     placeholder="Score"
                     style={{ 
                       borderColor: getScoreColor(rk1),
@@ -709,8 +753,8 @@ const handleUpdate = async () => {
                   <input 
                     placeholder="Enter subject name..." 
                     value={newSubjectName} 
-                    onChange={(e) => {handleInputChange(setRk1, e.target.value);
-                      setNewSubjectName(e.target.value)}}
+                    onChange={(e) => 
+                      setNewSubjectName(e.target.value)}
                     style={{ 
                       flex: 1, padding: '14px', borderRadius: '16px', 
                       border: '1px solid #e2e8f0', fontSize: '16px', outline: 'none' 
