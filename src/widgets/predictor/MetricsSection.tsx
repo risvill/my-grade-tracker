@@ -30,6 +30,26 @@ export const MetricsSection = ({ subject, target }: { subject: any, target: numb
   const neededFromExam = Math.max(0, (targetPercent - currentTotal) / 0.4);
   const probability = Math.max(0, Math.min(100, 100 - neededFromExam));
 
+
+  // 1. Определяем "веса" сложности цели
+const targetDifficulty = target === 3 ? 0.8 : target === 4 ? 0.6 : 0.4; 
+// 3 (легко) -> 0.8 (высокий базовый процент)
+// 4 (средне) -> 0.6
+// 5 (сложно) -> 0.4 (базовый процент ниже)
+
+// 2. Рассчитываем "Confidence Score"
+// Мы берем текущий средний балл и масштабируем его относительно сложности цели
+const rawConfidence = (currentTotal / targetPercent) * 100;
+const confidence = Math.min(100, rawConfidence * targetDifficulty);
+
+// 3. Вывод статуса
+const getConfidenceLabel = (conf: number) => {
+  if (conf > 80) return "Very High Confidence";
+  if (conf > 60) return "Good Progress";
+  if (conf > 40) return "Steady";
+  return "Challenging";
+};
+
   return (
     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginTop: '20px' }}>
       
@@ -78,19 +98,26 @@ export const MetricsSection = ({ subject, target }: { subject: any, target: numb
         </div>
       </section>
 
-      <section className="card" style={{ minHeight: '180px' }}>
-        <h3>📊 Probability of Success</h3>
-        <div style={{ background: '#eee', height: '12px', borderRadius: '6px', margin: '15px 0' }}>
-          <div style={{ 
-            width: `${probability}%`, 
-            height: '100%', 
-            background: probability > 70 ? '#4caf50' : probability > 40 ? '#ff9800' : '#f44336',
-            borderRadius: '6px',
-            transition: '0.5s'
-          }} />
-        </div>
-        <p>Вероятность достижения цели: <strong>{probability.toFixed(0)}%</strong></p>
-      </section>
+      <section className="card" style={{ minHeight: '180px', padding: '20px' }}>
+  <h3>⚔️ Сomplexity</h3>
+  <div style={{ background: '#eee', height: '12px', borderRadius: '6px', margin: '15px 0' }}>
+    <div style={{ 
+      width: `${confidence}%`, 
+      height: '100%', 
+      background: confidence > 75 ? '#4caf50' : confidence > 30 ? '#ff9800' : '#f44336',
+      borderRadius: '6px',
+      transition: '0.5s'
+    }} />
+  </div>
+  <p>
+    Confidence Level: <strong>{getConfidenceLabel(confidence)}</strong>
+  </p>
+  <p style={{ marginTop: '8px', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+    {confidence < 40 
+      ? "Targeting this grade is ambitious. Keep pushing!" 
+      : "You are on the right track for this target."}
+  </p>
+</section>
     </div>
   );
 };
