@@ -1,31 +1,21 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 
+// Приводим интерфейсы к единому формату (используем string для id, так как Supabase UUID — это string)
 interface Subject {
-  id: string | number;
+  id: string;
   title: string;
   total_percent: number | string;
-  rk1: number | string; 
-  rk2: number | string;
-  exam: number | string;
+  rk1: number | string | null; 
+  rk2: number | string | null;
+  exam: number | string | null;
   fa_grades: any; 
 }
-
-type SubjectData = { 
-  id: string;
-  rk1?: number | null; 
-  rk2?: number | null; 
-  exam?: number | null; 
-  fa_grades?: any;
-  total_percent?: number;
-};
-
 
 interface SubjectContextType {
   activeSubject: Subject | null;
   setActiveSubject: (subject: Subject | null) => void;
-  updateSubjectInContext: (data: SubjectData) => void;
+  updateSubjectInContext: (data: Partial<Subject>) => void;
 }
-
 
 export const SubjectContext = createContext<SubjectContextType>({
   activeSubject: null,
@@ -34,22 +24,30 @@ export const SubjectContext = createContext<SubjectContextType>({
 });
 
 export const SubjectProvider = ({ children }: { children: ReactNode }) => {
-
-  const [activeSubject, setActiveSubject] = useState(() => {
+  const [activeSubject, setActiveSubject] = useState<Subject | null>(() => {
     const saved = sessionStorage.getItem('activeSubject');
-    return saved ? JSON.parse(saved) : null;
+    try {
+      return saved ? JSON.parse(saved) : null;
+    } catch {
+      return null;
+    }
   });
 
-  const updateSubjectInContext = (data: SubjectData) => {
-  setActiveSubject((prev: any) => ({
-    ...prev,
-    ...data
-  }));
+  const updateSubjectInContext = (data: Partial<Subject>) => {
+    setActiveSubject((prev) => {
+      if (!prev) return null;
+      return { ...prev, ...data } as Subject;
+    });
   };
 
   useEffect(() => {
-    sessionStorage.setItem('activeSubject', JSON.stringify(activeSubject));
+    if (activeSubject) {
+      sessionStorage.setItem('activeSubject', JSON.stringify(activeSubject));
+    } else {
+      sessionStorage.removeItem('activeSubject');
+    }
   }, [activeSubject]);
+
   return (
     <SubjectContext.Provider value={{ activeSubject, setActiveSubject, updateSubjectInContext }}>
       {children}

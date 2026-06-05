@@ -51,14 +51,12 @@ const getBackgroundColor = (letter: string) => {
   if (letter.startsWith('C')) return '#e53e3e';            // Красный (3)
   return '#c05621';                                        // Темно-оранжевый (2)
 };
-const handleInputChange = (setter: Function, value: string) => {
-  if (value === "") {
-    setter(""); 
-    return;
-  }
-  setIsDirty(true); // Пользователь начал что-то менять!
+const handleInputChange = (setter: Function, value: string, originalValue: string | undefined) => {
+  setter(value);
+  // Если текущее значение НЕ равно тому, что было изначально — ставим true
+  // Мы приводим к строке, чтобы корректно сравнить "5" и 5 или "" и undefined
+  setIsDirty(value !== (originalValue?.toString() || ""));
 };
-
 let blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname
@@ -304,7 +302,7 @@ const handleRk1Change = (val: string) => {
   const num = Number(val);
   const validatedVal = val === "" ? "" : Math.max(0, Math.min(100, num)).toString();
   setRk1(validatedVal);
-  handleInputChange(setRk1, validatedVal);
+  handleInputChange(setRk1, validatedVal, activeSubject?.rk1?.toString());
   if (validatedVal === "") {
     setRk2(""); // Очищаем РК2, если стерли РК1
     setExam(""); // Очищаем Экзамен, если стерли РК1
@@ -318,7 +316,7 @@ const handleRk2Change = (val: string) => {
   
   setRk2(validatedVal);
 
-  handleInputChange(setRk2, validatedVal);
+  handleInputChange(setRk2, validatedVal, activeSubject?.rk2?.toString());
   
   if (validatedVal === "") {
     setExam("");
@@ -385,25 +383,34 @@ const handleRk2Change = (val: string) => {
   }
 };
 
-const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateAction<any>>) => {
+const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateAction<any>>, originalValue?: string) => {
   if (value === "") {
     setter(""); 
+    handleInputChange(setter, "", originalValue); // Передаем originalValue сюда
   } else {
-    
     const num = Math.max(0, Math.min(100, Number(value)));
-    setter(num.toString());
+    const strNum = num.toString();
+    setter(strNum);
+    handleInputChange(setter, strNum, originalValue); // И сюда
   }
 };
   const loadIntoCalculator = (item: any) => {
-    targetIdRef.current = item.id; 
-    console.log("DEBUG: ID предмета успешно записан в targetIdRef:", item.id);
+
+    
+    const normalizedItem = {
+    ...item,
+    id: String(item.id) 
+  };
+  console.log("DEBUG: ID предмета успешно записан в targetIdRef:", item.id);
+  targetIdRef.current = normalizedItem.id;
+  
     setRk1(item.rk1?.toString() || '');
     setRk2(item.rk2?.toString() || '');
     setExam(item.exam?.toString() || '');
     setFaGrades(item.fa_grades || []);
     setNewSubjectName(item.title);
     setSaveStatus('idle'); 
-    setActiveSubject(item);
+    setActiveSubject(normalizedItem);
     
     if (setIsHistoryOpen) setIsHistoryOpen(false);
   };
@@ -583,13 +590,20 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                             value={currentFa}
                             onChange={(e) => {
                               const val = e.target.value;
+                              
+                              // Вычисляем оригинал: если мы в режиме редактирования (editingId есть), 
+                              // берем значение из массива fa_grades, иначе это пустая строка
+                              const originalFa = editingId 
+                                ? faGrades.find((g: any) => g.id === editingId)?.value?.toString() || "" 
+                                : "";
+
                               if (val === "") {
                                 setCurrentFa(""); 
-                                handleInputChange(setCurrentFa, ""); 
+                                handleInputChange(setCurrentFa, "", originalFa); 
                               } else {
                                 const num = Math.max(0, Math.min(100, Number(val)));
                                 setCurrentFa(num.toString());
-                                handleInputChange(setCurrentFa, num.toString());
+                                handleInputChange(setCurrentFa, num.toString(), originalFa);
                               }
                             }}
                             style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
@@ -712,8 +726,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                     className='score-input'
                     value={exam}
                     onChange={(e) => {
-                      handleInputChange(setExam, e.target.value);
-                      handleScoreChange(e.target.value, setExam);
+                      handleInputChange(setExam, e.target.value, activeSubject?.exam?.toString());
                     }}
                     disabled={isExamDisabled}
                     placeholder="Score"

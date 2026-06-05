@@ -4,6 +4,7 @@ import { supabase } from "./lib/supabaseClient";
 import type { Session } from '@supabase/supabase-js';
 import { router } from "./utils/router"; 
 import { AuthPage } from "./pages/AuthPage";
+import { SubjectProvider } from "./utils/SubjectContext";
 
 export default function App() {
   const [session, setSession] = useState<Session | null>(null);
@@ -28,7 +29,12 @@ export default function App() {
 
   if (loading) return <div>Загрузка системы...</div>;
 
-  console.log("App: рендеринг, session есть?", !!session);
-
-  return !session ? <AuthPage /> : <RouterProvider router={router} />;
+  return !session ? (
+    <AuthPage /> 
+  ) : (
+    // Оберни роутер в провайдер!
+    <SubjectProvider>
+      <RouterProvider router={router} />
+    </SubjectProvider>
+  );
 }
