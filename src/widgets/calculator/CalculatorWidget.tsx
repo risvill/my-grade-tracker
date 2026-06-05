@@ -1,13 +1,14 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import { useOutletContext } from 'react-router-dom';
 import { supabase } from '../../lib/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
 import { Pencil, Trash2, ArrowLeft, History, } from 'lucide-react';
+import { SubjectContext } from '../../utils/SubjectContext';
 
 export const CalculatorWidget = () => {
   // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
-
+  const { setActiveSubject } = useContext(SubjectContext);
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
@@ -251,6 +252,7 @@ const insertNewRecord = async (baseName: string) => {
     setFaGrades(item.fa_grades || []);
     setNewSubjectName(item.title);
     setSaveStatus('idle'); // Возвращаем в обычный режим
+    setActiveSubject(item);
     
     // Закрываем историю через контекст
     if (setIsHistoryOpen) setIsHistoryOpen(false);

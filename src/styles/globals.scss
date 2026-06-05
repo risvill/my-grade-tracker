@@ -409,11 +409,17 @@ body {
   background-color: #f8f9fa; /* Светло-серый, если var(--bg-primary) слишком яркий */
 }
 
+.main-content-container {
+ width: 100%;
+  max-width: 850px;
+  text-align: center;
+}
+
 .target-selector {
   display: flex;
   gap: 10px;
   margin: 20px 0;
-
+ 
   button {
     flex: 1;
     padding: 20px;

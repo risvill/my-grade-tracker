@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useContext, useState } from "react";
 import { supabase } from "../lib/supabaseClient";
+import { SubjectContext } from "../utils/SubjectContext";
 import { PredictorWidget } from "../widgets/predictor/PredictorWidget";
 import { SafetyNetWidget } from "../widgets/predictor/SafetyNetWidget";
 import {MetricsSection} from "../widgets/predictor/MetricsSection"
@@ -8,27 +9,20 @@ export const PredictorPage = () => {
   const [subjects, setSubjects] = useState<any[]>([]);
   const [selectedSubject, setSelectedSubject] = useState<any>(null);
   const [target, setTarget] = useState(4); // 3, 4 или 5
-
-  useEffect(() => {
-    const fetchSubjects = async () => {
-      const { data } = await supabase.from('grades').select('*');
-      if (data) setSubjects(data);
-    };
-    fetchSubjects();
-  }, []);
+  const { activeSubject } = useContext(SubjectContext);
+  console.log("PredictorPage: данные из контекста:", activeSubject);
+  if (!activeSubject) {
+      return (
+        <div className="main-content-container" style={{ textAlign: 'center', marginTop: '50px' }}>
+          <h2>No subject selected</h2>
+          <p>Go to the Calculator page and select a subject from your history.</p>
+        </div>
+      );
+    }
 
   return (
     <div className="main-content-container">
-      <h1>Предиктор успеваемости</h1>
-
-      <select onChange={(e) => setSelectedSubject(subjects.find(s => s.id == e.target.value))}>
-        <option value="">Выберите предмет...</option>
-        {subjects.map(s => <option key={s.id} value={s.id}>{s.title}</option>)}
-      </select>
-
-        {/* Выбор предмета */}
-
-        <div className="target-selector">
+      <div className="target-selector">
         {[3, 4, 5].map(t => (
           <button 
             key={t} 
@@ -39,12 +33,13 @@ export const PredictorPage = () => {
           </button>
         ))}
       </div>
+
       {/* Выбор предмета */}
       
 
         {selectedSubject && (
         <>
-          <PredictorWidget subject={selectedSubject} target={target} />
+          <PredictorWidget subject={activeSubject} target={target} />
         </>
       )}
 
@@ -53,14 +48,14 @@ export const PredictorPage = () => {
 
         {selectedSubject && (
         <>
-          <SafetyNetWidget rkAverage={(Number(selectedSubject.rk1) + Number(selectedSubject.rk2)) / 2} />
+          <SafetyNetWidget rkAverage={(Number(activeSubject.rk1) + Number(activeSubject.rk2)) / 2} />
         </>
       )}
 
 
         {selectedSubject && (
         <>
-           <MetricsSection subject={selectedSubject} target={target} />
+           <MetricsSection subject={activeSubject} target={target} />
         </>
       )}
      

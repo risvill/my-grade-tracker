@@ -3,9 +3,11 @@ import { MainLayout } from "../src/layouts/MainLayout"; // Создадим ни
 import { CalculatorPage } from "./pages/CalculatorPage";
 import { PredictorPage } from "./pages/PredictorPage";
 import { AnalyticsPage } from "./pages/AnalyticsPage";
+import { SubjectProvider } from "./utils/SubjectContext";
 
 export default function App() {
   return (
+    <SubjectProvider>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<MainLayout />}>
@@ -16,5 +18,6 @@ export default function App() {
         </Route>
       </Routes>
     </BrowserRouter>
+    </SubjectProvider>
   );
 }
