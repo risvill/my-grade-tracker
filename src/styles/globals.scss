@@ -473,8 +473,9 @@ body {
     background: var(--bg-secondary);
     border-radius: 12px;
     cursor: pointer;
-    font-weight: bold;
     transition: 0.3s;
+    font-weight: 600;
+    font-size: 18px;
 
     &.active {
       border-color: var(--accent-primary);

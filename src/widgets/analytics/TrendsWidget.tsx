@@ -1,17 +1,21 @@
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Tooltip } from "recharts";
 import { TrendingUp } from "lucide-react";
+import { InfoTooltip } from '../../shared/ui/InfoTooltip';
 
 export const TrendsWidget = ({ faGrades }: { faGrades: number[] }) => {
   const chartData = faGrades.map((g, i) => ({ name: `FA ${i + 1}`, value: g }));
 
   return (
     <div className="card" style={{ padding: '20px', borderRadius: '16px', background: '#fff', border: '1px solid #e2e8f0' }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+      <div>
+        <div style={{display: 'flex', gap: '10px'}}>
         <TrendingUp size={20} color="#3b82f6" />
-        <div>
+        <div style={{display: 'flex'}}>
           <h3 style={{ margin: 0 }}>FA Grade Trend</h3>
-          <p style={{ margin: 0, fontSize: '0.8rem', color: '#64748b' }}>Current grades</p>
+          <InfoTooltip content="This graph clearly illustrates the trends in your current ratings." />
         </div>
+        </div>
+        <p style={{ margin: '0 0 10px 30px', fontSize: '0.8rem', color: '#64748b' }}>Current grades</p>
       </div>
 
       <ResponsiveContainer width="100%" height={250}>

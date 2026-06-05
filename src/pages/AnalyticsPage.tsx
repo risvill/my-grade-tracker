@@ -4,8 +4,9 @@ import { useNavigate } from "react-router-dom";
 import { ValidityWidget } from "../widgets/analytics/ValidityWidget";
 import { TrendsWidget } from "../widgets/analytics/TrendsWidget";
 import { MetricCard } from "../widgets/analytics/MetricCard";
-import { TrendingUp, Activity, HelpCircle } from "lucide-react";
+import { TrendingUp, Activity, Sigma } from "lucide-react";
 import styles from "../widgets/analytics/AnalyticsWidget.module.scss";
+import { InfoTooltip } from "../shared/ui/InfoTooltip/InfoTooltip";
 
 export const AnalyticsPage = () => {
   const { activeSubject } = useContext(SubjectContext);
@@ -81,7 +82,14 @@ const latestFa = fa.slice(-5);
       </div>
           
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '20px', marginTop: '20px' }}>
-        <MetricCard icon={TrendingUp} title="TREND">
+        
+          <MetricCard icon={TrendingUp} title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
+              TREND
+              <InfoTooltip content="This shows the direction of your progress: ‘Progress’ means your scores are improving, ‘Regress’ means they are declining." />
+            </div>
+          }>
+        
           <div className={styles.trendBadge} style={{ 
             backgroundColor: trendStatus === 'Progress' ? '#10b981' : 
                              trendStatus === 'Regress' ? '#ef4444' : '#64748b' 
@@ -91,7 +99,10 @@ const latestFa = fa.slice(-5);
           <p style={{ margin: '5px', fontSize: '0.8rem', color: '#64748b' }}>FA Dynamics Evaluation</p>
         </MetricCard>
 
-        <MetricCard icon={Activity} title="VOLATILITY">
+        <MetricCard icon={Activity} title={<div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
+              VOLATILITY
+              <InfoTooltip content="Indicates the consistency of your scores. Low volatility means steady progress; high volatility means frequent swings between good and bad results." />
+            </div>}>
             <div className={styles.volatilityBar}>
                 <div 
                 className={styles.volatilityFill} 
@@ -104,7 +115,10 @@ const latestFa = fa.slice(-5);
             </div>
         </MetricCard>
 
-        <MetricCard icon={HelpCircle} title="MEAN SCORE" value={mean.toFixed(1)} subValue={`±${stdDev.toFixed(2)}`} />
+        <MetricCard icon={Sigma} title={<div style={{ display: 'flex', alignItems: 'center', gap: '0px' }}>
+              MEAN SCORE
+              <InfoTooltip content="This is your current grade point average. It gives you a general idea of your academic performance at this point." />
+            </div>} value={mean.toFixed(1)} subValue={`±${stdDev.toFixed(2)}`} />
       </div>
     </div>
   );
