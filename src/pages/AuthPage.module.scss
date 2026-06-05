@@ -16,7 +16,7 @@
   gap: 1rem;
   box-shadow: 0 10px 25px rgba(0,0,0,0.1);
 
-  input { padding: 12px; border-radius: 6px; border: 1px solid var(--border-primary); }
+  input { padding: 12px; border-radius: 12px; border: 1px solid var(--border-primary); }
   button { padding: 12px; background: #3b82f6; color: white; border: none; border-radius: 6px; cursor: pointer; }
   .toggle { cursor: pointer; font-size: 0.8rem; text-align: center; color: var(--text-muted); }
 }
@@ -31,4 +31,33 @@
     border-color: #3b82f6; /* Твой синий цвет */
     box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.38); /* Твой эффект тени */
   }
+}
+
+.submit-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #3182ce; /* Твой фирменный синий */
+  color: white;
+  border: none;
+  border-radius: 12px; /* Скругление как у карточек */
+  font-weight: 600;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.2s ease-in-out; /* Плавность при наведении */
+  margin-top: 15px;
+}
+
+.submit-button:hover {
+  background-color: #2b6cb0; /* Чуть темнее при наведении */
+  transform: translateY(-1px); /* Легкий "прыжок" вверх */
+  box-shadow: 0 4px 12px rgba(49, 130, 206, 0.2);
+}
+
+.submit-button:active {
+  transform: translateY(0);
+}
+
+.submit-button:disabled {
+  background-color: #cbd5e0;
+  cursor: not-allowed;
 }

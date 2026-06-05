@@ -34,19 +34,19 @@ export const AuthPage = () => {
 
   return (
     <div className={styles.authContainer}>
-      <form onSubmit={handleAuth} className={styles.authForm}>
-        <h2>{isLogin ? 'Вход в систему' : 'Регистрация'}</h2>
-        <input className='score-input2' type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
-        <input className='score-input2' type="password" placeholder="Пароль" onChange={(e) => setPassword(e.target.value)} required />
-        
-        <button type="submit" disabled={loading}>
-          {loading ? 'Загрузка...' : (isLogin ? 'Войти' : 'Зарегистрироваться')}
-        </button>
+  <form onSubmit={handleAuth} className={styles.authForm}>
+    <h2>{isLogin ? 'Sign In' : 'Sign Up'}</h2>
+    <input className='score-input2' type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} required />
+    <input className='score-input2' type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} required />
+    
+    <button className="submit-button" type="submit" disabled={loading}>
+      {loading ? 'Loading...' : (isLogin ? 'Enter' : 'Sign Up')}
+    </button>
 
-        <p onClick={() => setIsLogin(!isLogin)} className={styles.toggle}>
-          {isLogin ? 'Нет аккаунта? Зарегистрироваться' : 'Уже есть аккаунт? Войти'}
-        </p>
-      </form>
-    </div>
+    <p onClick={() => setIsLogin(!isLogin)} className={styles.toggle}>
+      {isLogin ? 'Don\'t have an account? Sign Up' : 'Already have an account? Sign In'}
+    </p>
+  </form>
+</div>
   );
 };
