@@ -171,6 +171,16 @@ const handleReset = () => {
   setSaveStatus('idle');
 };
 
+const finishSave = () => {
+  setSaveStatus('success');
+  fetchHistory();
+  setTimeout(() => {
+    setSaveStatus('idle');
+    setNewSubjectName('');
+  }, 2000); // Скрываем сообщение через 2 секунды
+};
+
+
 const handleCheckExistence = async () => {
   const { data } = await supabase.from('grades').select('id').eq('title', newSubjectName);
   if (data && data.length > 0) {
@@ -183,14 +193,6 @@ const handleCheckExistence = async () => {
   }
 };
 
-const finishSave = () => {
-  setSaveStatus('success');
-  fetchHistory();
-  setTimeout(() => {
-    setSaveStatus('idle');
-    setNewSubjectName('');
-  }, 2000); // Скрываем сообщение через 2 секунды
-};
 
 
 const insertNewRecord = async (baseName: string) => {
@@ -215,15 +217,21 @@ const insertNewRecord = async (baseName: string) => {
   }
 
   // Теперь вставляем запись с найденным свободным именем
-  const { error } = await supabase.from('grades').insert([{ 
-    title: finalName, 
-    rk1, rk2, exam, 
-    fa_grades: faGrades,
-    total_percent: total.toFixed(1) 
-  }]);
+  const newRecord = {
+    title: finalName,
+    rk1: Number(rk1),           // Убедись, что это числа
+    rk2: Number(rk2),
+    exam: Number(exam),
+    fa_grades: faGrades,        // Убедись, что тип соответствует колонке в БД
+    total_percent: parseFloat(total.toFixed(1)), // Преобразуем строку обратно в число
+    is_pinned: false            // Добавь, если эта колонка обязательна
+  };
+
+  const { error } = await supabase.from('grades').insert([newRecord]);
   
   if (error) {
-    alert('Ошибка: ' + error.message);
+    console.error("Ошибка Supabase:", error);
+    alert('Ошибка при сохранении: ' + error.message);
   } else {
     finishSave();
   }
@@ -492,7 +500,7 @@ const insertNewRecord = async (baseName: string) => {
                     }
                     setCurrentFa('');
                   }}
-                  style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' }}
+                  style={{ padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer', fontWeight: '600' }}
                 >
                   {editingId ? 'Update' : 'Add'}
                 </button>
@@ -563,10 +571,9 @@ const insertNewRecord = async (baseName: string) => {
                   </button>
                 </div>
               )}
-
               {/* Режим ввода названия */}
               {saveStatus === 'input' && (
-                <div style={{ display: 'flex', gap: '10px' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '10px', width: '100%', maxWidth: '850px', margin:'0 auto' }}>
                   <input 
                     placeholder="Enter subject name..." 
                     value={newSubjectName} 
@@ -585,6 +592,75 @@ const insertNewRecord = async (baseName: string) => {
                   >
                     Check
                   </button>
+                </div>
+              )}
+              {saveStatus === 'confirming' && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  marginBottom: '24px', 
+                  padding: '16px', 
+                  background: '#f8fafc', 
+                  borderRadius: '16px' 
+                }}>
+                  <p style={{ 
+                    color: '#666', 
+                    fontSize: '15px', 
+                    fontWeight: '600', 
+                    marginBottom: '16px' 
+                  }}>
+                    Subject with this name already exists!
+                  </p>
+                  
+                  <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+                    <button 
+                      onClick={handleUpdate} 
+                      style={{ 
+                        padding: '10px 20px', 
+                        background: '#ef4444', 
+                        color: 'white', 
+                        borderRadius: '12px', // чуть скругленнее для современного вида
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        fontWeight: '600',
+                        
+                      }}
+                    >
+                      Update
+                    </button>
+                    <button 
+                      onClick={() => insertNewRecord(pendingName)} 
+                      style={{ 
+                        padding: '13px 23px', 
+                        background: '#10b981', 
+                        color: 'white', 
+                        borderRadius: '12px', 
+                        border: 'none', 
+                        cursor: 'pointer', 
+                        fontWeight: '600',
+             
+                      }}
+                    >
+                      Save as New
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              {/* 2. Статус успеха (когда всё сохранилось) */}
+              {saveStatus === 'success' && (
+                <div style={{ 
+                  textAlign: 'center', 
+                  padding: '16px', 
+                  background: '#dcfce7', // светло-зеленый фон
+                  color: '#166534',      // темно-зеленый текст
+                  borderRadius: '16px', 
+                  fontWeight: '600',     // выделяем жирным
+                  fontSize: '15px',
+                  marginBottom: '20px',
+                  border: '1px solid #bbf7d0',
+                  width: '100%', maxWidth: '850px', margin:'0 auto' // добавляем легкую обводку
+                }}>
+                  ✅ Success! The result has been saved.
                 </div>
               )}
               
@@ -665,8 +741,8 @@ const insertNewRecord = async (baseName: string) => {
 
                         <span onClick={() => loadIntoCalculator(item)} 
                         style={{ 
-                          
-                          background: item.is_pinned ? '#f5f1c8' : '#eff6ff',
+                          cursor: 'pointer',
+                          background: item.is_pinned ? '#fcf8cd' : '#eff6ff',
                           color: item.is_pinned ? '#eab308' : '#3b82f6',
                           padding: '6px 12px', 
                           borderRadius: '8px', 
