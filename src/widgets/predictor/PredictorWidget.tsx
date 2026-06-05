@@ -18,41 +18,74 @@ export const PredictorWidget = ({ subject: propSubject, target }: { subject?: an
   };
   const targetMin = ranges[target].min;
 
-
   const renderPrediction = () => {
+    // 1. Полностью завершен
     if (rk1 !== null && rk2 !== null && exam !== null) {
       const final = ((rk1 + rk2) / 2) * 0.6 + (exam * 0.4);
-      return <p>You have already received all your grades. Your final score is: <strong>{final.toFixed(1)}%</strong></p>;
-    }
-
-    if (rk1 !== null && rk2 !== null) {
-      const rkAvg = (rk1 + rk2) / 2;
-      const neededExam = (targetMin - (rkAvg * 0.6)) / 0.4;
-      
       return (
-        <>
-          <p>Current average rating (RK1+RK2): <strong>{rkAvg.toFixed(1)}%</strong></p>
-          <p>To achive a grade of <strong>{target}</strong>, your minimum score on the exam must be:</p>
-          <h2 style={{ color: 'var(--accent-primary)' }}>{Math.max(0, neededExam).toFixed(1)}%</h2>
-        </>
+        <div style={{ textAlign: 'center' }}>
+          <p>Course completed!</p>
+          <h2 style={{ color: 'var(--accent-primary)' }}>{final.toFixed(1)}%</h2>
+        </div>
       );
     }
-    // 3. Есть только РК1, готовимся к РК2 (фокус на средний рейтинг)
+
+    // 2. Есть РК1 и РК2, ждем экзамен
+if (rk1 !== null && rk2 !== null) {
+  const rkAvg = (rk1 + rk2) / 2;
+  const neededExam = (targetMin - (rkAvg * 0.6)) / 0.4;
+  const isPossible = neededExam <= 100;
+
+  return (
+    <div style={{ textAlign: 'center' }}>
+      <p style={{ marginBottom: '5px', fontWeight: '600', fontSize: '18px' }}>
+        Current Average: {rkAvg.toFixed(1)}%
+      </p>
+      <p style={{ marginBottom: '5px' }}>(Need Average {targetMin}%)</p>
+      
+      <h1 style={{ color: 'var(--accent-primary)', fontSize: '2.5rem', margin: '10px 0' }}>
+        {isPossible ? `${Math.max(0, neededExam).toFixed(0)}%` : "Impossible"}
+      </h1>
+      
+      <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Required on Exam</p>
+      
+      <div style={{ marginTop: '15px', background: '#e0e0e0', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+        <div style={{ 
+          width: `${Math.min(Math.max(0, neededExam), 100)}%`, 
+          height: '100%', 
+          background: isPossible ? 'var(--accent-primary)' : '#ff4d4f', 
+          borderRadius: '3px' 
+        }} />
+      </div>
+    </div>
+  );
+}
+
+    // 3. Есть только РК1, готовимся к РК2
     if (rk1 !== null) {
-      // Чтобы средний рейтинг (РК1+РК2)/2 был равен TargetMin
       const neededRk2 = (targetMin * 2) - rk1;
+      const isPossible = neededRk2 <= 100;
       
       return (
-        <>
-          <p>Current RК1: <strong>{rk1.toFixed(1)}%</strong></p>
-          <p>To achieve Average Rating (RК1+RК2)/2, your minimum score on the exam must be:</p>
-          <h2 style={{ color: 'var(--accent-primary)' }}>
-            {neededRk2 > 100 
-              ? "Цель недостижима с РК1" 
-              : `${Math.max(0, neededRk2).toFixed(1)}%`}
-          </h2>
-          <p style={{ fontSize: '0.85rem' }}>* Это необходимо только для среднего рейтинга.</p>
-        </>
+        <div style={{ textAlign: 'center' }}>
+          <p style={{ marginBottom: '5px', fontWeight:'600', fontSize: '18px'}}>Current RK1: {rk1.toFixed(1)}%</p>
+          <p style={{ marginBottom: '5px' }}>(Need Average {targetMin}%)</p>
+          
+          <h1 style={{ color: 'var(--accent-primary)', fontSize: '2.5rem', margin: '10px 0' }}>
+            {isPossible ? `${Math.max(0, neededRk2).toFixed(0)}%` : "Impossible"}
+          </h1>
+          
+          <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Required on RK2</p>
+          
+          <div style={{ marginTop: '15px', background: '#e0e0e0', height: '6px', borderRadius: '3px', overflow: 'hidden' }}>
+            <div style={{ 
+              width: `${Math.min(Math.max(0, neededRk2), 100)}%`, 
+              height: '100%', 
+              background: isPossible ? 'var(--accent-primary)' : '#ff4d4f', 
+              borderRadius: '3px' 
+            }} />
+          </div>
+        </div>
       );
     }
 
