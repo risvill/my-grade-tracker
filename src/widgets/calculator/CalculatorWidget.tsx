@@ -629,7 +629,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                             alignItems: 'center',
                             maxWidth: '60px',
                             maxHeight: '36px',
-                            marginBottom: '20px'
+                
                           }}
                         >
                           <span style={{ fontWeight: '600', fontSize: '15px', color: selectedFaIds.includes(grade.id) ?  'white' : 'black'}}>{grade.value}</span>
@@ -637,7 +637,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                       ))}
                     </div>
                     
-                  <div style={{ display: 'flex', gap: '10px',}}>
+                  <div style={{ display: 'flex', gap: '10px', marginTop: '20px'}}>
                 <input 
                   className="score-input" 
                   placeholder='Score'

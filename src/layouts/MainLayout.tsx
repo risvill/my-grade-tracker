@@ -1,9 +1,19 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
+import { supabase } from "../lib/supabaseClient";
+import { NavLink, useNavigate } from 'react-router-dom';
+import { LogOut } from "lucide-react";
 
 export const MainLayout = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const location = useLocation();
+
+  const navigate = useNavigate();
+
+const handleLogout = async () => {
+  await supabase.auth.signOut();
+  navigate('/'); // После выхода просто перекидываем в корень
+};
 
   // Функция для определения, активна ли ссылка
   const isActive = (path: string) => location.pathname.includes(path);
@@ -24,22 +34,22 @@ export const MainLayout = () => {
 
           <div style={{ display: 'flex', gap: '32px', alignItems: 'center' }}>
             {['calculator', 'predictor', 'analytics'].map((path) => (
-              <Link 
+              <NavLink 
                 key={path}
-                to={`/${path}`} 
-                style={{ 
+                to={`/${path}`}
+                style={({ isActive }) => ({
                   textTransform: 'capitalize',
                   textDecoration: 'none',
                   fontSize: '15px',
-                  fontWeight: isActive(path) ? '600' : '500',
-                  color: isActive(path) ? '#4a5568' : '#a0aec0',
+                  fontWeight: isActive ? '600' : '500',
+                  color: isActive ? '#4a5568' : '#a0aec0',
                   transition: 'color 0.2s'
-                }}
+                })}
               >
                 {path}
-              </Link>
+              </NavLink>
             ))}
-            
+                      
             <button 
               onClick={() => setIsHistoryOpen(true)}
               style={{ 
@@ -55,6 +65,25 @@ export const MainLayout = () => {
               }}
             >
               History
+            </button>
+            
+            <button 
+              onClick={handleLogout}
+              style={{ 
+                marginLeft: '-15px',
+                cursor: 'pointer',
+                background: '#3b82f6', 
+                padding: '8px',       
+                borderRadius: '10px',
+                border: 'none',
+                height: '33px',
+                color: 'white',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}
+            >
+              <LogOut size={20} />
             </button>
           </div>
         </nav>
