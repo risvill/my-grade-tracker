@@ -8,7 +8,8 @@ import { SubjectContext } from '../../utils/SubjectContext';
 export const CalculatorWidget = () => {
   // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
-  const { setActiveSubject } = useContext(SubjectContext);
+const { activeSubject, setActiveSubject } = useContext(SubjectContext);
+  const [name, setName] = useState(''); // Добавь это, чтобы setName работал
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
@@ -27,6 +28,9 @@ const [editingId, setEditingId] = useState<number | null>(null);
 
 const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
 const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
+const faAvg = faGrades.length > 0 
+  ? faGrades.reduce((acc, curr) => acc + Number(curr.value), 0) / faGrades.length 
+  : 0;
 const gradeInfo = getGradeInfo(total);
 
 const getBackgroundColor = (letter: string) => {
@@ -35,6 +39,21 @@ const getBackgroundColor = (letter: string) => {
   if (letter.startsWith('C')) return '#e53e3e';            // Красный (3)
   return '#c05621';                                        // Темно-оранжевый (2)
 };
+
+
+useEffect(() => {
+  if (activeSubject) {
+    setName(activeSubject.title || '');
+    setRk1(activeSubject.rk1?.toString() || '');
+    setRk2(activeSubject.rk2?.toString() || '');
+    setExam(activeSubject.exam?.toString() || '');
+    setTargetId(Number(activeSubject.id));
+
+    if (activeSubject.fa_grades) {
+        setFaGrades(activeSubject.fa_grades);
+    }
+  }
+}, [activeSubject]);
 
 // ... внутри твоего компонента:
 const backgroundColor = getBackgroundColor(gradeInfo.letter);
@@ -511,10 +530,10 @@ const insertNewRecord = async (baseName: string) => {
                   <div style={{ display: 'flex', gap: '10px',}}>
                 <input 
                   className="score-input" 
-
+                  placeholder='Score'
                   value={currentFa} 
                   onChange={(e) => setCurrentFa(e.target.value)} 
-                  style={{ flex: 1, marginBottom: 0, maxWidth: '100px' }}
+                  style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
                 />
                 <button 
                   onClick={() => {
@@ -550,14 +569,12 @@ const insertNewRecord = async (baseName: string) => {
                 <div style={{ display: 'flex', padding: '10px',alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <input 
                     type="number" 
-                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    className="score-input" 
                     value={exam} 
                     onChange={(e) => setExam(e.target.value)}
                     placeholder="Score"
                     style={{ 
-                      // Динамически меняем рамку в зависимости от значения
                       borderColor: getScoreColor(rk1),
-                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
                     }}
                   />
                   <span style={{ color: '#a3aebe' }}>/</span>
@@ -568,6 +585,22 @@ const insertNewRecord = async (baseName: string) => {
                     style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cad5e2', textAlign: 'center', background: '#fafdff', color: '#8f9db1' }} 
                   />
                 </div>
+                {faGrades.length > 0 && (
+                  <div style={{ 
+                    marginTop: '20px', 
+                    padding: '16px', 
+                    background: '#eff6ff', 
+                    border: '1px solid #dbeafe', 
+                    borderRadius: '12px' 
+                  }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ color: '#1e40af', fontWeight: '600',fontSize: '16px', marginRight: '5px' }}>Current (FA) Avg:</span>
+                      <span style={{  background: '#3b82f6' ,borderRadius: '10px', padding:'10px', fontSize: '1.0rem', fontWeight: '600', color: '#ffffff' }}>
+                        {faAvg.toFixed(1)}%
+                      </span>
+                    </div>
+                  </div>
+                )}
              </section>
           </div>
 

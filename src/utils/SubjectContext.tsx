@@ -1,4 +1,4 @@
-import { createContext, useState, type ReactNode } from 'react';
+import { createContext, useEffect, useState, type ReactNode } from 'react';
 
 // 1. Опиши тип предмета (подставь свои поля)
 interface Subject {
@@ -26,8 +26,15 @@ export const SubjectContext = createContext<SubjectContextType>({
 });
 
 export const SubjectProvider = ({ children }: { children: ReactNode }) => {
-  const [activeSubject, setActiveSubject] = useState<Subject | null>(null);
 
+  const [activeSubject, setActiveSubject] = useState(() => {
+    const saved = sessionStorage.getItem('activeSubject');
+    return saved ? JSON.parse(saved) : null;
+  });
+
+  useEffect(() => {
+    sessionStorage.setItem('activeSubject', JSON.stringify(activeSubject));
+  }, [activeSubject]);
   return (
     <SubjectContext.Provider value={{ activeSubject, setActiveSubject }}>
       {children}
