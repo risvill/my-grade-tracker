@@ -65,10 +65,10 @@ const getConfidenceLabel = (conf: number) => {
             value={hypotheticalScore}
             onChange={(e) => {
               const val = e.target.value;
-  // Разрешаем пустую строку (чтобы можно было стереть всё) или число от 0 до 100
-  if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
-    setHypotheticalScore(val);
-  }
+              // Разрешаем пустую строку (чтобы можно было стереть всё) или число от 0 до 100
+              if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
+                setHypotheticalScore(val);
+              }
              }}
             placeholder="Score"
           />

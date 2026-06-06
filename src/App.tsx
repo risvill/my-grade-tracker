@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { RouterProvider } from "react-router-dom";
-import { supabase } from "./lib/supabaseClient";
+import { supabase } from "./utils/supabaseClient";
 import type { Session } from '@supabase/supabase-js';
 import { router } from "./utils/router"; 
 import { AuthPage } from "./pages/AuthPage";

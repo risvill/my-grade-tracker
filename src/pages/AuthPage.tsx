@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { supabase } from '../lib/supabaseClient'; // твой файл инициализации Supabase
+import { supabase } from '../utils/supabaseClient'; // твой файл инициализации Supabase
 import styles from './AuthPage.module.scss'; // создай этот файл для стилей
 
 export const AuthPage = () => {

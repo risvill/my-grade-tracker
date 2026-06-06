@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState, useRef } from 'react';
 import { useOutletContext, useBlocker } from 'react-router-dom';
-import { supabase } from '../../lib/supabaseClient';
+import { supabase } from '../../utils/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
 import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';

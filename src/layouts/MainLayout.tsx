@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
-import { supabase } from "../lib/supabaseClient";
+import { supabase } from "../utils/supabaseClient";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LogOut } from "lucide-react";
 
