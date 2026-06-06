@@ -1,0 +1,67 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  padding: 20px;
+  font-family: system-ui, -apple-system, sans-serif;
+  color: #1a2e3a;
+}
+
+.icon {
+  font-size: 64px;
+  margin-bottom: 24px;
+  opacity: 0.8;
+}
+
+.title {
+  margin: 0 0 8px 0;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.description {
+  margin: 0 0 32px 0;
+  color: #667781;
+  font-size: 16px;
+  text-align: center;
+}
+
+.button {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 500;
+  color: white;
+  background: linear-gradient(105deg, #10405c 0%, #048fe2 100%);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(6, 23, 34, 0.2);
+  transition: transform 0.2s;
+}
+
+.button:hover {
+  transform: scale(1.02);
+}
+/* Добавь это к уже существующим стилям */
+.card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(7, 11, 126, 0.05);
+  max-width: 400px;
+  margin: 50px auto;
+  text-align: center;
+}
+
+.cardText {
+  margin-bottom: 24px;
+  color: #4a5d68;
+  font-size: 16px;
+  line-height: 1.5;
+}

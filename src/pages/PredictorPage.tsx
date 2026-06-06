@@ -5,20 +5,27 @@ import { SafetyNetWidget } from "../widgets/predictor/SafetyNetWidget";
 import { MetricsSection } from "../widgets/predictor/MetricsSection";
 import { getPredictionState } from '../utils/predictionUtils';
 import { useNavigate } from "react-router-dom"; 
-
+import styles from './NoSubject.module.scss';
 export const PredictorPage = () => {
   const [target, setTarget] = useState(4);
   const { activeSubject } = useContext(SubjectContext);
   const navigate = useNavigate();
 
-  if (!activeSubject) {
-    return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <h1>No subject selected</h1>
-        <button onClick={() => navigate('/calculator')}>Go to Calculator</button>
-      </div>
-    );
-  }
+ if (!activeSubject) {
+  return (
+    <div className={styles.container}>
+      <div className={styles.icon}>🎓</div>
+      <h1 className={styles.title}>No subject selected</h1>
+      <p className={styles.description}>
+        Select or add a new subject to<br />
+        start tracking your grades
+      </p>
+      <button className={styles.button} onClick={() => navigate('/calculator')}>
+        Go to Calculator
+      </button>
+    </div>
+  );
+}
 
 
   const data = { 
@@ -33,24 +40,32 @@ export const PredictorPage = () => {
   // --- Рендер в зависимости от состояния ---
 
   // State 0: Пусто
-  if (state === 'EMPTY_ALL') {
-    return (
-      <div className="card">
-        <p>Для начала создайте оценки по предмету в Калькуляторе.</p>
-        <button onClick={() => navigate('/calculator')}>Перейти в Калькулятор</button>
-      </div>
-    );
-  }
+  // State: EMPTY_ALL
+if (state === 'EMPTY_ALL') {
+  return (
+    <div className={styles.card}>
+      <p className={styles.cardText}>To get started, enter your grades into the calculator and save the item!</p>
+      <button className={styles.button} onClick={() => navigate('/calculator')}>
+        Go to Calculator
+      </button>
+    </div>
+  );
+}
 
-  // State 1: Only FA, without RK or Exam
-  if (state === 'ONLY_ANALYTICS') {
-    return (
-      <div className="card">
-        <p>Your current results do not affect your final score in any way; they are only needed to identify your progress.</p>
-        <button onClick={() => navigate('/analytics')}>Go to analytics</button>
-      </div>
-    );
-  }
+// State: ONLY_ANALYTICS
+if (state === 'ONLY_ANALYTICS') {
+  return (
+    <div className={styles.card}>
+      <p className={styles.cardText}>
+        Your current results do not affect your final score in any way; 
+        they are only needed to identify your progress.
+      </p>
+      <button className={styles.button} onClick={() => navigate('/analytics')}>
+        Go to analytics
+      </button>
+    </div>
+  );
+}
 
   // State 2: Активный режим
   return (

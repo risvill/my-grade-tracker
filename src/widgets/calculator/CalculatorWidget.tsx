@@ -606,8 +606,11 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                           >
                             {editingId ? 'Update' : 'Add'}
                           </button>
+                          
                         </div>
+                        
                       </div>
+                      
                       {selectedFaIds.length > 0 && (
                         <div   
                           key="action-panel" 
@@ -616,7 +619,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                           alignItems: 'center', 
                           gap: '8px', 
                           margin: '0',
-                          padding: '0px 5px 0px 5px',
+                          padding: '0px 0px 0px 10px',
                         }}>
                           {/* Кнопка Удалить */}
                           <button 
@@ -645,15 +648,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                           </button>
                         </div>
                       )}
-                      {editingId && (
-                      <div style={{ color: '#3075e6', marginBottom: '10px', fontSize: '14px', margin: '0',
-                          padding: '10px 5px 0px 5px', }}>
-                        Editing...
-                        <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{  padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' , textDecoration: 'none', marginLeft: '15px' }}>
-                          Cancel
-                        </span>
-                      </div>
-                    )}
+                      
                     </div>
                     
                     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '20px', marginBottom: '0px'}}>
@@ -686,6 +681,15 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                         </div>
                       ))}
                     </div>
+                    {editingId && (
+                      <div style={{ color: '#3075e6', marginBottom: '10px', fontSize: '14px', margin: '15px 0 0 0',
+                          padding: '10px 5px 0px 5px', }}>
+                        Editing...
+                        <span onClick={() => { setEditingId(null); setCurrentFa(''); }} style={{  padding: '10px 20px', borderRadius: '10px', border: 'none', background: '#3b82f6', color: 'white', cursor: 'pointer' , textDecoration: 'none', marginLeft: '15px' }}>
+                          Cancel
+                        </span>
+                      </div>
+                    )}
                     
                  
           </section>
