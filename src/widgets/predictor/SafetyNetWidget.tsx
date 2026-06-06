@@ -5,7 +5,6 @@ export const SafetyNetWidget = ({ rk1, rk2, exam, target }: { rk1: any, rk2: any
   const isWaitingForExam = rk1 !== null && rk2 !== null;
   const isWaitingForRk2 = rk1 !== null && rk2 === null;
 
-  // Если таргет 3 — вообще ничего не показываем
   if (target === 3) return null;
 
   const calculate = (threshold: number) => {
@@ -21,15 +20,12 @@ export const SafetyNetWidget = ({ rk1, rk2, exam, target }: { rk1: any, rk2: any
     const needed = calculate(threshold);
     if (needed === null || needed > 100) return null;
 
-
-    // Блок, если цель уже достигнута (безопасная зона)
     if (needed <= 0) return (
         <div style={{ background: '#d4edda', padding: '15px', borderRadius: '12px', border: '1px solid #c3e6cb' }}>
             <p style={{ margin: 0, color: '#155724' }}>✅ Goal <strong>{gradeLabel}</strong> (min. {threshold}%) is already secured!</p>
         </div>
     );
 
-    // Основной блок для расчета
     return (
       <div style={{ background: 'var(--bg-primary)', padding: '15px', borderRadius: '12px' }}>
         <p style={{ margin: 0 }}>
@@ -44,10 +40,7 @@ export const SafetyNetWidget = ({ rk1, rk2, exam, target }: { rk1: any, rk2: any
     <section className="card" style={{ marginTop: '20px' }}>
       
       <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        {/* Таргет 4 и 5: показываем защиту от 2 */}
         {target >= 4 && renderBlock(50, '2', 'min. 50%')}
-        
-        {/* Только таргет 5: показываем защиту от 3 */}
         {target === 5 && renderBlock(70, '3', 'min. 70%')}
       </div>
     </section>

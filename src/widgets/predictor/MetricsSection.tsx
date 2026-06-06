@@ -30,15 +30,7 @@ export const MetricsSection = ({ subject, target }: { subject: any, target: numb
   const neededFromExam = Math.max(0, (targetPercent - currentTotal) / 0.4);
   const probability = Math.max(0, Math.min(100, 100 - neededFromExam));
 
-
-  // 1. Определяем "веса" сложности цели
 const targetDifficulty = target === 3 ? 0.8 : target === 4 ? 0.6 : 0.4; 
-// 3 (легко) -> 0.8 (высокий базовый процент)
-// 4 (средне) -> 0.6
-// 5 (сложно) -> 0.4 (базовый процент ниже)
-
-// 2. Рассчитываем "Confidence Score"
-// Мы берем текущий средний балл и масштабируем его относительно сложности цели
 const rawConfidence = (currentTotal / targetPercent) * 100;
 const confidence = Math.min(100, rawConfidence * targetDifficulty);
 
@@ -65,7 +57,6 @@ const getConfidenceLabel = (conf: number) => {
             value={hypotheticalScore}
             onChange={(e) => {
               const val = e.target.value;
-              // Разрешаем пустую строку (чтобы можно было стереть всё) или число от 0 до 100
               if (val === '' || (Number(val) >= 0 && Number(val) <= 100)) {
                 setHypotheticalScore(val);
               }

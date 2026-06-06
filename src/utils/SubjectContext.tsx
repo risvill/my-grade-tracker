@@ -1,6 +1,5 @@
 import { createContext, useEffect, useState, type ReactNode } from 'react';
 
-// Приводим интерфейсы к единому формату (используем string для id, так как Supabase UUID — это string)
 interface Subject {
   id: string;
   title: string;
@@ -24,29 +23,32 @@ export const SubjectContext = createContext<SubjectContextType>({
 });
 
 export const SubjectProvider = ({ children }: { children: ReactNode }) => {
+  // Getting subject from cache on load to avoid unnecessary requests
   const [activeSubject, setActiveSubject] = useState<Subject | null>(() => {
     const saved = sessionStorage.getItem('activeSubject');
     try {
-      return saved ? JSON.parse(saved) : null;
+      return saved ? JSON.parse(saved) : null; // Parsing JSON from string
     } catch {
-      return null;
+      return null; // If something weird is inside, just return null
     }
   });
 
+  // Function for updating only required fields (for example, score changes)
   const updateSubjectInContext = (data: Partial<Subject>) => {
     setActiveSubject((prev) => {
-      if (!prev) return null;
-      return { ...prev, ...data } as Subject;
+      if (!prev) return null; // If subject does not exist, do nothing
+      return { ...prev, ...data } as Subject; // Merging old data with new one
     });
   };
 
+  // Watching activeSubject changes and syncing with sessionStorage
   useEffect(() => {
     if (activeSubject) {
       sessionStorage.setItem('activeSubject', JSON.stringify(activeSubject));
     } else {
-      sessionStorage.removeItem('activeSubject');
+      sessionStorage.removeItem('activeSubject'); // If subject is removed, clear cache
     }
-  }, [activeSubject]);
+  }, [activeSubject]); // Trigger only when state changes
 
   return (
     <SubjectContext.Provider value={{ activeSubject, setActiveSubject, updateSubjectInContext }}>

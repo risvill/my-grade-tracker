@@ -15,7 +15,6 @@ export const RootLayout = () => {
 
   if (loading) return <div>Загрузка...</div>;
   
-  // Если не авторизован - кидаем на корень (App.tsx подхватит и покажет AuthPage)
   if (!authenticated) return <Navigate to="/" replace />;
 
   return <Outlet />;

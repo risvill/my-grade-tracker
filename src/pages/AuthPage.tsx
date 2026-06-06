@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { supabase } from '../utils/supabaseClient'; // твой файл инициализации Supabase
-import styles from './AuthPage.module.scss'; // создай этот файл для стилей
+import { supabase } from '../utils/supabaseClient'; 
+import styles from './AuthPage.module.scss'; 
 
 export const AuthPage = () => {
   const [email, setEmail] = useState('');

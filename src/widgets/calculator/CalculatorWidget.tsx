@@ -6,10 +6,9 @@ import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';
 
 export const CalculatorWidget = () => {
-  // 1. Берем состояние из контекста, чтобы Navbar и виджет "дружили"
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
-const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(SubjectContext);
-  const [name, setName] = useState(''); // Добавь это, чтобы setName работал
+  const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(SubjectContext);
+  const [name, setName] = useState(''); 
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
@@ -17,31 +16,30 @@ const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(S
   const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
-const [targetId, setTargetId] = useState<string | null>(null); 
-const targetIdRef = useRef<string | null>(null); 
-const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
-const [newSubjectName, setNewSubjectName] = useState(''); // Для ввода имени
-const [pendingName, setPendingName] = useState(''); // Имя, которое уже есть в базе
+  const [targetId, setTargetId] = useState<string | null>(null); 
+  const targetIdRef = useRef<string | null>(null); 
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
+  const [newSubjectName, setNewSubjectName] = useState(''); 
+  const [pendingName, setPendingName] = useState(''); 
 
-const [selectedFaIds, setSelectedFaIds] = useState<number[]>([]); // ID выбранных оценок
-const [isSelectionMode, setIsSelectionMode] = useState(false); // Включен ли режим выбора
-const [editingId, setEditingId] = useState<number | null>(null);
+  const [selectedFaIds, setSelectedFaIds] = useState<number[]>([]); 
+  const [isSelectionMode, setIsSelectionMode] = useState(false); 
+  const [editingId, setEditingId] = useState<number | null>(null);
 
-const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
-const faAvg = faGrades.length > 0 
-  ? faGrades.reduce((acc, curr) => acc + Number(curr.value), 0) / faGrades.length 
-  : 0;
-const gradeInfo = getGradeInfo(total);
+  const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
+  const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
+  const faAvg = faGrades.length > 0 
+    ? faGrades.reduce((acc, curr) => acc + Number(curr.value), 0) / faGrades.length 
+    : 0;
+  const gradeInfo = getGradeInfo(total);
 
-const formatScore = (val: any) => {
-  // Если это пустая строка, undefined или null — возвращаем null для базы
-  if (val === "" || val === undefined || val === null || val === "NaN") {
-    return null;
-  }
-  const num = Number(val);
-  return isNaN(num) ? null : num;
-};
+  const formatScore = (val: any) => {
+    if (val === "" || val === undefined || val === null || val === "NaN") {
+      return null;
+    }
+    const num = Number(val);
+    return isNaN(num) ? null : num;
+  };
 
 const [isDirty, setIsDirty] = useState(false);
 
@@ -53,8 +51,6 @@ const getBackgroundColor = (letter: string) => {
 };
 const handleInputChange = (setter: Function, value: string, originalValue: string | undefined) => {
   setter(value);
-  // Если текущее значение НЕ равно тому, что было изначально — ставим true
-  // Мы приводим к строке, чтобы корректно сравнить "5" и 5 или "" и undefined
   setIsDirty(value !== (originalValue?.toString() || ""));
 };
 let blocker = useBlocker(
@@ -87,7 +83,7 @@ useEffect(() => {
   const handleBeforeUnload = (e: BeforeUnloadEvent) => {
     if (isDirty) {
       e.preventDefault();
-      e.returnValue = ''; // Браузер сам покажет стандартное окно подтверждения
+      e.returnValue = '';
     }
   };
 
@@ -95,10 +91,7 @@ useEffect(() => {
   return () => window.removeEventListener('beforeunload', handleBeforeUnload);
 }, [isDirty]);
 
-// ... внутри твоего компонента:
 const backgroundColor = getBackgroundColor(gradeInfo.letter);
-
-
 
 const togglePin = async (id: string) => {
   const item = history.find(i => i.id === id);
@@ -125,21 +118,19 @@ const togglePin = async (id: string) => {
 
 const getScoreColor = (score: any) => {
   const num = Number(score);
-  if (!score || num < 50) return '#e53e3e'; // Красный (ниже 50 или пусто)
-  if (num >= 50 && num <= 69) return '#e53e3e'; // Красный (50-69)
-  if (num >= 70 && num <= 89) return '#d69e2e'; // Оранжевый (70-89)
-  return '#38a169'; // Зеленый (90-100)
+  if (!score || num < 50) return '#e53e3e'; 
+  if (num >= 50 && num <= 69) return '#e53e3e'; 
+  if (num >= 70 && num <= 89) return '#d69e2e'; 
+  return '#38a169'; 
 };
 
 const deleteHistoryItem = async (id: number) => {
-  // 1. Удаляем из базы
   const { error } = await supabase
     .from('grades')
     .delete()
     .eq('id', id);
 
   if (!error) {
-    // 2. Если удаление успешно — обновляем стейт в React
     setHistory(history.filter(item => item.id !== id));
   } else {
     console.error("Ошибка удаления из БД:", error);
@@ -167,12 +158,12 @@ const handleRename = async (id: string) => {
 
   const { data, error } = await supabase
     .from('grades')
-    .update({ title: newName }) // <-- ЗАМЕНИ 'name' НА ТОЧНОЕ ИМЯ КОЛОНКИ ИЗ БАЗЫ
+    .update({ title: newName }) 
     .eq('id', id);
 
   if (error) {
     console.error("Ошибка обновления:", error.message);
-    console.error("Детали:", error.details); // Это покажет, почему Bad Request
+    console.error("Детали:", error.details); 
     alert(`Ошибка: ${error.message}`);
   } else {
     setHistory(prev => prev.map(item => item.id === id ? { ...item, title: newName } : item));
@@ -181,28 +172,27 @@ const handleRename = async (id: string) => {
 
 const handleDeleteSelected = () => {
   setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
-  setSelectedFaIds([]); // Сбрасываем выбор
+  setSelectedFaIds([]);
   setIsSelectionMode(false);
 };
 
 const handleEditSelected = () => {
   const item = faGrades.find(g => g.id === selectedFaIds[0]);
   if (item) {
-    setCurrentFa(item.value); // Кладем значение в поле ввода (инпут)
-    setEditingId(item.id);    // Запоминаем, какую карточку правим
-    setSelectedFaIds([]);     // Скрываем панель кнопок
+    setCurrentFa(item.value); 
+    setEditingId(item.id);    
+    setSelectedFaIds([]);     
     setIsSelectionMode(false);
   }
 };
 
 const handlePressStart = (id: number) => {
   const timeout = setTimeout(() => {
-    toggleSelection(id); // Выбираем элемент через 500мс
+    toggleSelection(id); 
   }, 300);
   setTimer(timeout);
 };
 
-// Функция завершения нажатия
 const handlePressEnd = () => {
   if (timer) {
     clearTimeout(timer);
@@ -304,8 +294,8 @@ const handleRk1Change = (val: string) => {
   setRk1(validatedVal);
   handleInputChange(setRk1, validatedVal, activeSubject?.rk1?.toString());
   if (validatedVal === "") {
-    setRk2(""); // Очищаем РК2, если стерли РК1
-    setExam(""); // Очищаем Экзамен, если стерли РК1
+    setRk2(""); 
+    setExam(""); 
   }
 };
 
@@ -327,7 +317,6 @@ const handleRk2Change = (val: string) => {
   const currentId = targetIdRef.current;
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Добавляем логирование для отладки
   console.log("--- DEBUG START ---");
   console.log("ID из аргумента (modal):", idFromModal);
   console.log("ID из Ref:", targetIdRef.current);
@@ -386,17 +375,15 @@ const handleRk2Change = (val: string) => {
 const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateAction<any>>, originalValue?: string) => {
   if (value === "") {
     setter(""); 
-    handleInputChange(setter, "", originalValue); // Передаем originalValue сюда
+    handleInputChange(setter, "", originalValue); 
   } else {
     const num = Math.max(0, Math.min(100, Number(value)));
     const strNum = num.toString();
     setter(strNum);
-    handleInputChange(setter, strNum, originalValue); // И сюда
+    handleInputChange(setter, strNum, originalValue);
   }
 };
   const loadIntoCalculator = (item: any) => {
-
-    
     const normalizedItem = {
     ...item,
     id: String(item.id) 
@@ -414,8 +401,8 @@ const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateA
     
     if (setIsHistoryOpen) setIsHistoryOpen(false);
   };
-const isRk2Disabled = !rk1 || rk1 === ""; // РК2 закрыт, если нет РК1
-const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзамен закрыт, если нет РК1 или РК2
+const isRk2Disabled = !rk1 || rk1 === ""; 
+const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; 
 
   return (
     <div id="wrapper">
@@ -445,7 +432,6 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
           border: '1px solid #e2e8f0',
           marginBottom: '24px' 
         }}>
-          {/* Красивая карточка с GPA и прогресс-баром */}
           <div style={{ 
             background: '#fff',
             borderRadius: '16px', 
@@ -461,23 +447,22 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 </div>
               </div>
               
-              {/* Квадратик с оценкой */}
+  
               <div style={{ 
-                background: backgroundColor, // Цвет готов!
+                background: backgroundColor,
                 color: 'white', 
                 padding: '10px 18px', 
                 borderRadius: '12px', 
                 fontWeight: 'bold',
                 fontSize: '20px'
               }}>
-                {/* Здесь выводишь то, что нужно (цифру или букву) */}
                 {gradeInfo.letter === 'A' || gradeInfo.letter === 'A-' ? '5' : 
                 gradeInfo.letter.startsWith('B') ? '4' : 
                 gradeInfo.letter.startsWith('C') ? '3' : '2'}
               </div>
             </div>
             
-            {/* Прогресс бар */}
+
             <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', marginTop: '20px' }}>
               <div style={{ 
                 width: `${Math.min(Math.max(total, 0), 100)}%`, 
@@ -507,7 +492,6 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
               Summative Assessments
             </div>
 
-            {/* РК-1 и РК-2 в одну линию */}
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
               {/* РК-1 */}
               <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '16px', border: '1px solid #e2e8f0', textAlign: 'center' }}>
@@ -541,7 +525,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}>
                   <input 
                     type="number" 
-                    className="score-input" // твой класс из global.scss для формы и фокуса
+                    className="score-input" 
                     min="0" 
                     max="100"
                     value={rk2}
@@ -549,9 +533,9 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                     disabled={isRk2Disabled}
                     placeholder="Score"
                     style={{ 
-                      // Динамически меняем рамку в зависимости от значения
+       
                       borderColor: getScoreColor(rk2),
-                      // Дополнительно: если хочешь, чтобы при наборе цвет текста тоже менялся:
+        
                     }}
                   />
                   <span style={{ color: '#94a3b8' }}>/</span>
@@ -567,14 +551,14 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
 
             </section>
                <div style={{ 
-                  display: 'flex',           // Используем flex вместо grid
-                  justifyContent: 'center',  // Прижимаем всё к центру
-                  alignItems: 'flex-start',  // Выравниваем по верхнему краю
-                  gap: '20px',               // Расстояние между блоками (уменьши до 10px, если хочешь еще ближе)
+                  display: 'flex',           
+                  justifyContent: 'center', 
+                  alignItems: 'flex-start',  
+                  gap: '20px',            
                   width: '100%',
-                  maxWidth: '1200px',        // Ограничиваем общую ширину, чтобы не разлетались
+                  maxWidth: '1200px',    
                   margin: '0 auto',
-                  marginBottom: '24px'          // Центрируем сам контейнер на странице
+                  marginBottom: '24px'        
                 }}>
                   <div style={{ flex: '1', maxWidth: '600px' }}>
                   <section style={{ height: '257.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
@@ -591,8 +575,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                             onChange={(e) => {
                               const val = e.target.value;
                               
-                              // Вычисляем оригинал: если мы в режиме редактирования (editingId есть), 
-                              // берем значение из массива fa_grades, иначе это пустая строка
+                 
                               const originalFa = editingId 
                                 ? faGrades.find((g: any) => g.id === editingId)?.value?.toString() || "" 
                                 : "";
@@ -680,7 +663,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                           // Старт таймера при нажатии (и мыши, и таче)
                           onMouseDown={() => handlePressStart(grade.id)}
                           onMouseUp={handlePressEnd}
-                          onMouseLeave={handlePressEnd} // Если ушли курсором с кнопки, отменяем
+                          onMouseLeave={handlePressEnd} 
                           
                           // Для мобильных устройств:
                           onTouchStart={() => handlePressStart(grade.id)}
@@ -691,7 +674,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                             border: selectedFaIds.includes(grade.id) ? '2px solid #3b82f6' : '1px solid #e2e8f0',
                             backgroundColor: selectedFaIds.includes(grade.id) ?  '#3b82f6' : 'white',
                             boxShadow: selectedFaIds.includes(grade.id) ?  '-2px 0 10px #94bdff' : '1px 0 0 white',
-                            borderRadius: '12px',       // Скругление как на скриншоте
+                            borderRadius: '12px',      
                             display: 'flex',
                             alignItems: 'center',
                             maxWidth: '60px',
@@ -760,8 +743,6 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 )}
              </section>
           </div>
-
-          
               {/* Режим выбора: Сохранить или Сбросить */}
               {saveStatus === 'idle' && (
                 <div style={{ display: 'flex', gap: '12px', margin: '0 auto 20px', 
@@ -837,7 +818,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                         padding: '10px 20px', 
                         background: '#ef4444', 
                         color: 'white', 
-                        borderRadius: '12px', // чуть скругленнее для современного вида
+                        borderRadius: '12px', 
                         border: 'none', 
                         cursor: 'pointer', 
                         fontWeight: '600',
@@ -870,14 +851,14 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
                 <div style={{ 
                   textAlign: 'center', 
                   padding: '16px', 
-                  background: '#dcfce7', // светло-зеленый фон
-                  color: '#166534',      // темно-зеленый текст
+                  background: '#dcfce7', 
+                  color: '#166534',      
                   borderRadius: '16px', 
-                  fontWeight: '600',     // выделяем жирным
+                  fontWeight: '600',   
                   fontSize: '15px',
                   marginBottom: '20px',
                   border: '1px solid #bbf7d0',
-                  width: '100%', maxWidth: '850px', margin:'0 auto' // добавляем легкую обводку
+                  width: '100%', maxWidth: '850px', margin:'0 auto'
                 }}>
                   ✅ Success! The result has been saved.
                 </div>
@@ -898,7 +879,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; // Экзаме
             borderLeft: '1px solid var(--border-primary)', 
             padding: '24px', 
             transition: '0.3s ease-in-out', 
-            zIndex: 1001 // Сделаем еще выше, чем у хедера (хедер был 1000)
+            zIndex: 1001 
           }}
         >
           

@@ -9,10 +9,8 @@ export const router = createBrowserRouter([
     path: "/",
     element: <MainLayout />,
     children: [
-      // Добавь эту строку:
       { index: true, element: <Navigate to="/calculator" replace /> },
       
-      // Твои остальные страницы
       { path: "calculator", element: <CalculatorPage /> },
       { path: "predictor", element: <PredictorPage /> },
       { path: "analytics", element: <AnalyticsPage /> },

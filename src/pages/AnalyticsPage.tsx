@@ -12,7 +12,7 @@ export const AnalyticsPage = () => {
   const { activeSubject } = useContext(SubjectContext);
   const navigate = useNavigate();
 
-  // Если предмет не выбран, перенаправляем или показываем заглушку
+
   if (!activeSubject) {
     return (
       <div style={{ textAlign: 'center', marginTop: '50px' }}>
@@ -23,13 +23,13 @@ export const AnalyticsPage = () => {
     );
   }
 
-  // ВЫЧИСЛЕНИЯ теперь работают напрямую с activeSubject
+
 const rawGrades = activeSubject?.fa_grades;
 
 let fa: number[] = [];
 
 if (Array.isArray(rawGrades)) {
-  // Достаем именно поле 'value' из каждого объекта
+
   fa = rawGrades.map((item: any) => Number(item.value));
 } else if (typeof rawGrades === 'string') {
   try {
@@ -41,7 +41,7 @@ if (Array.isArray(rawGrades)) {
   }
 }
 
-// Теперь fa будет [90, 100, ...] — чистые числа!
+
 console.log("Чистый массив для графиков:", fa);
 const trendFa = fa.slice(-7);
 const latestFa = fa.slice(-5);

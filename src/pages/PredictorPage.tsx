@@ -4,7 +4,7 @@ import { PredictorWidget } from "../widgets/predictor/PredictorWidget";
 import { SafetyNetWidget } from "../widgets/predictor/SafetyNetWidget";
 import { MetricsSection } from "../widgets/predictor/MetricsSection";
 import { getPredictionState } from '../utils/predictionUtils';
-import { useNavigate } from "react-router-dom"; // Предполагаю, что используешь react-router
+import { useNavigate } from "react-router-dom"; 
 
 export const PredictorPage = () => {
   const [target, setTarget] = useState(4);
@@ -20,7 +20,7 @@ export const PredictorPage = () => {
     );
   }
 
-  // Подготовка данных для нашей логики
+
   const data = { 
     rk1: activeSubject.rk1, 
     rk2: activeSubject.rk2, 
@@ -42,12 +42,12 @@ export const PredictorPage = () => {
     );
   }
 
-  // State 1: Есть только текущие, нет РК
+  // State 1: Only FA, without RK or Exam
   if (state === 'ONLY_ANALYTICS') {
     return (
       <div className="card">
-        <p>Ваши текущие оценки никак не влияют на итоговый балл, они нужны лишь для отслеживания прогресса.</p>
-        <button onClick={() => navigate('/analytics')}>Перейти к аналитике</button>
+        <p>Your current results do not affect your final score in any way; they are only needed to identify your progress.</p>
+        <button onClick={() => navigate('/analytics')}>Go to analytics</button>
       </div>
     );
   }
@@ -57,10 +57,13 @@ export const PredictorPage = () => {
     <div className="main-content-container2">
       <div className="card">
         <div className="target-selector">
+          {/* Map through potential targets (3, 4, 5) to dynamically render selection buttons */}
           {[3, 4, 5].map(t => (
             <button 
               key={t} 
+              /* Apply 'active' class conditionally for visual feedback */
               className={target === t ? 'active' : ''} 
+              /* Update the local target state when the user selects a goal */
               onClick={() => setTarget(t)}
             >
               Target: {t}
@@ -68,8 +71,12 @@ export const PredictorPage = () => {
           ))}
         </div>
       </div>
-
       <h2 className="card_title">🎯 How to Reach Goal</h2>
+      
+      {/* The PredictorWidget is the 'controller' component. 
+        We pass it the 'activeSubject' (from Context) and the user's selected 'target'.
+        This forces the widget to re-calculate whenever these props change. 
+      */}
       <PredictorWidget subject={activeSubject} target={target} />
 
       {target !== 3 && (

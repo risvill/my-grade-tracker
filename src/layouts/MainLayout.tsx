@@ -12,10 +12,10 @@ export const MainLayout = () => {
 
 const handleLogout = async () => {
   await supabase.auth.signOut();
-  navigate('/'); // После выхода просто перекидываем в корень
+  navigate('/'); 
 };
 
-  // Функция для определения, активна ли ссылка
+
   const isActive = (path: string) => location.pathname.includes(path);
 
   return (
