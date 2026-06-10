@@ -150,15 +150,28 @@ const deleteHistoryItem = async (id: string) => {
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 
-  const fetchHistory = async () => {
-    const { data} = await supabase
-      .from('grades')
-      .select('*')
-      .order('created_at', { ascending: false }); 
+const fetchHistory = async (page = 0, pageSize = 10) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
-    if (data) {
-      setHistory(data); 
-    }
+  const from = page * pageSize;
+  const to = from + pageSize - 1;
+
+  const { data, error } = await supabase
+    .from('grades')
+    .select('id, title, rk1, rk2, exam, total_percent, is_pinned, created_at')
+    .eq('user_id', user.id)
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error("Error fetching data:", error);
+    return;
+  }
+
+  if (data) {
+    setHistory(prev => page === 0 ? data : [...prev, ...data]);
+  }
 };
 
   useEffect(() => { 
