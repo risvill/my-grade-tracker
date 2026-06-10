@@ -264,7 +264,17 @@ const finishSave = () => {
 
 
 const handleCheckExistence = async () => {
-  const { data } = await supabase.from('grades').select('id').eq('title', newSubjectName);
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+
+  const { data } = await supabase
+    .from('grades')
+    .select('id')
+    .eq('title', newSubjectName)
+    .eq('user_id', user.id); 
+
   if (data && data.length > 0) {
     setPendingName(newSubjectName);
     setTargetId(data[0].id);
