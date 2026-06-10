@@ -101,6 +101,7 @@ An automatically generated REST API that enables secure interaction with the Pos
 
 
 ### Key Dependencies
+I used node.js - v24.16.0
 
 Additional libraries and utilities are used to implement specific application features.
 
@@ -115,6 +116,8 @@ Additional libraries and utilities are used to implement specific application fe
 
 ```bash
 my-grade-tracker/
+├── database/
+│  
 ├── src/
 │   ├── layouts/
 │   ├── pages/
@@ -253,7 +256,7 @@ To run the frontend locally in an isolated environment, follow these steps:
 
  - Your Dockerfile should build the React project and serve it using Nginx:
 ```
-FROM node:18-alpine AS build
+FROM node:20-alpine AS build
 
 WORKDIR /app
 
