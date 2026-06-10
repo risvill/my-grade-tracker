@@ -13,6 +13,8 @@ export const CalculatorWidget = () => {
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
   const [history, setHistory] = useState<any[]>([]);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(true);
   const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
@@ -150,7 +152,7 @@ const deleteHistoryItem = async (id: string) => {
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 
-const fetchHistory = async (page = 0, pageSize = 10) => {
+const fetchHistory = async (page = 0, pageSize = 8) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
@@ -170,12 +172,13 @@ const fetchHistory = async (page = 0, pageSize = 10) => {
   }
 
   if (data) {
-    setHistory(prev => page === 0 ? data : [...prev, ...data]);
-  }
+  setHistory(prev => page === 0 ? data : [...prev, ...data]);
+  setHasMore(data.length === pageSize);
+}
 };
 
-  useEffect(() => { 
-    fetchHistory(); 
+  useEffect(() => {
+    fetchHistory(0);
   }, []);
 
 const handleRename = async (id: string) => {
@@ -1028,6 +1031,26 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                   );
                 })
               }
+              {hasMore && (
+                <button
+                  onClick={() => {
+                    const nextPage = page + 1;
+                    setPage(nextPage);
+                    fetchHistory(nextPage);
+                  }}
+                  style={{
+                    padding: '12px',
+                    borderRadius: '12px',
+                    border: '1px solid #e2e8f0',
+                    background: '#ffffff',
+                    cursor: 'pointer',
+                    marginTop: '8px',
+                    fontWeight: '600'
+                  }}
+                >
+                  Load More
+                </button>
+              )}
             </div>
           </div>
               </div>
