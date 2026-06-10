@@ -99,23 +99,18 @@ const togglePin = async (id: string) => {
 
   const newPinnedStatus = !item.is_pinned;
 
-  // 1. Получаем текущего пользователя
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
-
-  // 2. Добавляем проверку user_id в запрос
   const { error } = await supabase
     .from('grades')
     .update({ is_pinned: newPinnedStatus })
     .eq('id', id)
-    .eq('user_id', user.id); // <--- Это защитит запись от изменений чужими руками
+    .eq('user_id', user.id); 
 
   if (error) {
-    console.error("Ошибка при обновлении статуса:", error);
+    console.error("Error whule updating:", error);
     return;
   }
-
-  // 3. Обновляем локальное состояние только если запрос к БД прошел успешно
   setHistory(prevHistory => 
     prevHistory.map(i => 
       i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
@@ -131,17 +126,28 @@ const getScoreColor = (score: any) => {
   return '#38a169'; 
 };
 
-const deleteHistoryItem = async (id: number) => {
+const deleteHistoryItem = async (id: string) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    alert("ERROR: You are not registered!");
+    return;
+  }
+
   const { error } = await supabase
     .from('grades')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id); 
 
-  if (!error) {
-    setHistory(history.filter(item => item.id !== id));
-  } else {
-    console.error("Ошибка удаления из БД:", error);
+  if (error) {
+    console.error("Deleting error:", error.message);
+    alert("Couldn't deleted subject. Try again");
+    return;
   }
+
+  // 3. Обновляем локальное состояние ТОЛЬКО после успеха в БД
+  setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 
   const fetchHistory = async () => {
@@ -160,23 +166,28 @@ const deleteHistoryItem = async (id: number) => {
   }, []);
 
 const handleRename = async (id: string) => {
-  const newName = prompt("Введите новое название:");
+  const newName = prompt("Enter new name of subject:");
   if (!newName) return;
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    alert("You are not registered!");
+    return;
+  }
 
   const { data, error } = await supabase
     .from('grades')
-    .update({ title: newName }) 
-    .eq('id', id);
+    .update({ title: newName })
+    .eq('id', id)
+    .eq('user_id', user.id);
 
   if (error) {
-    console.error("Ошибка обновления:", error.message);
-    console.error("Детали:", error.details); 
-    alert(`Ошибка: ${error.message}`);
+    console.error("Updating Error:", error.message);
+    alert(`Error: ${error.message}`);
   } else {
     setHistory(prev => prev.map(item => item.id === id ? { ...item, title: newName } : item));
   }
 };
-
 const handleDeleteSelected = () => {
   setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
   setSelectedFaIds([]);
