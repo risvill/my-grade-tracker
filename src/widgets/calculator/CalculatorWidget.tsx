@@ -97,23 +97,30 @@ const togglePin = async (id: string) => {
   const item = history.find(i => i.id === id);
   if (!item) return;
 
-  const newPinnedStatus = !item.is_pinned; 
+  const newPinnedStatus = !item.is_pinned;
 
+  // 1. Получаем текущего пользователя
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+
+  // 2. Добавляем проверку user_id в запрос
   const { error } = await supabase
-    .from('grades') 
-    .update({ is_pinned: newPinnedStatus }) 
-    .eq('id', id);
+    .from('grades')
+    .update({ is_pinned: newPinnedStatus })
+    .eq('id', id)
+    .eq('user_id', user.id); // <--- Это защитит запись от изменений чужими руками
 
   if (error) {
-    console.error("Ошибка при обновлении статуса закрепления:", error);
+    console.error("Ошибка при обновлении статуса:", error);
     return;
   }
 
+  // 3. Обновляем локальное состояние только если запрос к БД прошел успешно
   setHistory(prevHistory => 
-  prevHistory.map(i => 
-    i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
-  )
-);
+    prevHistory.map(i => 
+      i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
+    )
+  );
 };
 
 const getScoreColor = (score: any) => {

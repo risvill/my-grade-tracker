@@ -7,6 +7,7 @@ import { MetricCard } from "../widgets/analytics/MetricCard";
 import { TrendingUp, Activity, Sigma } from "lucide-react";
 import styles from "../widgets/analytics/AnalyticsWidget.module.scss";
 import { InfoTooltip } from "../shared/ui/InfoTooltip/InfoTooltip";
+import styles1 from './NoSubject.module.scss';
 
 export const AnalyticsPage = () => {
   const { activeSubject } = useContext(SubjectContext);
@@ -15,12 +16,18 @@ export const AnalyticsPage = () => {
 
   if (!activeSubject) {
     return (
-      <div style={{ textAlign: 'center', marginTop: '50px' }}>
-        <h1>No subject selected</h1>
-        <p>Please select a subject in the Calculator to view analytics.</p>
-        <button onClick={() => navigate('/calculator')}>Go to Calculator</button>
-      </div>
-    );
+    <div className={styles1.container}>
+      <div className={styles1.icon}>🎓</div>
+      <h1 className={styles1.title}>No subject selected</h1>
+      <p className={styles1.description}>
+        Select or add a new subject to<br />
+        start tracking your grades
+      </p>
+      <button className={styles1.button} onClick={() => navigate('/calculator')}>
+        Go to Calculator
+      </button>
+    </div>
+  );
   }
 
 
