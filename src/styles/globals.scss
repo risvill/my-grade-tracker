@@ -573,3 +573,36 @@ body {
 .animate-appear {
   animation: slideIn 0.3s ease-in forwards;
 }
+
+/* Группировка кнопок в меню */
+.nav-menu-group {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* Общий стиль для всех кнопок меню */
+.nav-btn {
+  cursor: pointer;
+  background: #3b82f6;
+  border: none;
+  border-radius: 10px;
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.2s;
+  padding: 8px 20px;
+  height: 38px;
+}
+
+.nav-btn:hover {
+  opacity: 0.9;
+}
+
+/* Специальный стиль для иконки настройки (квадратная) */
+.nav-btn-icon {
+  padding: 8px;
+  width: 38px;
+}

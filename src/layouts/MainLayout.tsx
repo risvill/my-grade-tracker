@@ -1,14 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, Link, useLocation } from "react-router-dom";
 import { supabase } from "../utils/supabaseClient";
 import { NavLink, useNavigate } from 'react-router-dom';
 import { LogOut } from "lucide-react";
+import {Settings} from "lucide-react";
+import { SettingsModal } from "../widgets/calculator/SettingModal";
 
 export const MainLayout = () => {
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const location = useLocation();
 
   const navigate = useNavigate();
+  
+  useEffect(() => {
+    const getUserId = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) setUserId(user.id);
+    };
+    getUserId();
+  }, []);
 
 const handleLogout = async () => {
   await supabase.auth.signOut();
@@ -49,42 +61,39 @@ const handleLogout = async () => {
                 {path}
               </NavLink>
             ))}
+
+            <div style={{display: 'flex', flexDirection: 'row', gap:'10px'}}>
                       
             <button 
+              className="nav-btn" 
               onClick={() => setIsHistoryOpen(true)}
-              style={{ 
-                cursor: 'pointer',
-                fontSize: '15px',
-                background: '#3b82f6',
-                padding: '8px 20px',
-                borderRadius: '10px',
-                border: 'none',
-                color: 'white',
-                fontWeight: '600',
-                marginLeft: '12px'
-              }}
             >
               History
             </button>
-            
+
             <button 
+              className="nav-btn nav-btn-icon" 
+              onClick={() => setIsSettingsOpen(true)}
+            >
+              <Settings size={22} />
+            </button>
+            {/* Модальное окно настроек */}
+            {isSettingsOpen && userId && (
+            <SettingsModal 
+              isModalOpen={isSettingsOpen}
+              onClose={() => setIsSettingsOpen(false)} 
+              userId={userId} 
+              onSave={() => setIsSettingsOpen(false)}
+            />
+          )}
+
+            <button 
+              className="nav-btn nav-btn-icon" 
               onClick={handleLogout}
-              style={{ 
-                marginLeft: '-15px',
-                cursor: 'pointer',
-                background: '#3b82f6', 
-                padding: '8px',       
-                borderRadius: '10px',
-                border: 'none',
-                height: '33px',
-                color: 'white',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}
             >
               <LogOut size={20} />
             </button>
+            </div>
           </div>
         </nav>
       </header>

@@ -25,6 +25,9 @@ export const CalculatorWidget = () => {
   const [faGrades, setFaGrades] = useState<{ id: number; value: string }[]>([]);
   const [currentFa, setCurrentFa] = useState('');
 
+const [grades, setGrades] = useState<any[]>([]);
+  const [userSettings, setUserSettings] = useState({ course: 1, semester: 1 });
+
   const [targetId, setTargetId] = useState<string | null>(null); 
   const targetIdRef = useRef<string | null>(null); 
   const [saveStatus, setSaveStatus] = useState<'idle' | 'input' | 'confirming' | 'success'>('idle');
@@ -49,7 +52,6 @@ export const CalculatorWidget = () => {
     const num = Number(val);
     return isNaN(num) ? null : num;
   };
-
 const [isDirty, setIsDirty] = useState(false);
 
 const getBackgroundColor = (letter: string) => {
@@ -158,7 +160,7 @@ const deleteHistoryItem = async (id: string) => {
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 
-const fetchHistory = async (page = 0, pageSize = 8) => {
+const fetchHistory = async (page = 0, pageSize = 8, course: number, semester: number) => {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return;
 
@@ -168,26 +170,54 @@ const fetchHistory = async (page = 0, pageSize = 8) => {
   const { data, error } = await supabase
     .from('grades')
     .select(`
-    id, title, rk1, rk2, exam, fa_grades, total_percent, is_pinned, rk1_note, rk2_note, fa_note, quarter_note, created_at`)
+      id, title, rk1, rk2, exam, fa_grades, total_percent, 
+      is_pinned, rk1_note, rk2_note, fa_note, quarter_note, created_at,
+      course, semester
+    `)
     .eq('user_id', user.id)
+    .eq('course', course)       // Фильтр по курсу
+    .eq('semester', semester)   // Фильтр по семестру
     .order('created_at', { ascending: false })
     .range(from, to);
 
   if (error) {
-    console.error("Error fetching data:", error);
+    console.error("Error fetching history:", error);
     return;
   }
 
   if (data) {
-  setHistory(prev => page === 0 ? data : [...prev, ...data]);
-  setHasMore(data.length === pageSize);
-}
+    setHistory(prev => page === 0 ? data : [...prev, ...data]);
+    setHasMore(data.length === pageSize);
+  }
 };
 
-  useEffect(() => {
-    fetchHistory(0);
-  }, []);
+const fetchGrades = async (course: number, semester: number) => {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
 
+  const { data, error } = await supabase
+    .from('grades')
+    .select('*')
+    .eq('user_id', user.id)
+    .eq('course', course)
+    .eq('semester', semester);
+
+  if (error) {
+    console.error("Error fetching grades:", error);
+  } else {
+    // Обновляем состояние твоих оценок в виджете
+    setGrades(data || []); 
+  }
+};
+
+useEffect(() => {
+  if (userSettings) {
+    // Загружаем оценки для текущего семестра
+    fetchGrades(userSettings.course, userSettings.semester);
+    // Загружаем историю для текущего семестра
+    fetchHistory(0, 8, userSettings.course, userSettings.semester);
+  }
+}, [userSettings]); // Сработает при изменении курса/семестра
 const handleRename = async (id: string) => {
   const newName = prompt("Enter new name of subject:");
   if (!newName) return;
@@ -269,7 +299,9 @@ const handleReset = () => {
 
 const finishSave = () => {
   setSaveStatus('success');
-  fetchHistory();
+  
+  fetchHistory(0, 8, userSettings.course, userSettings.semester);
+  
   setTimeout(() => {
     setSaveStatus('idle');
     setNewSubjectName('');
@@ -1076,7 +1108,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                   onClick={() => {
                     const nextPage = page + 1;
                     setPage(nextPage);
-                    fetchHistory(nextPage);
+                    fetchHistory(nextPage, 8, userSettings.course, userSettings.semester);
                   }}
                   style={{
                     padding: '12px',
