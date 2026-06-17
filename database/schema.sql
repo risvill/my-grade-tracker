@@ -12,6 +12,10 @@ CREATE TABLE public.grades (
   fa_grades jsonb,
   is_pinned boolean,
   user_id uuid DEFAULT auth.uid(),
+  rk1_note TEXT,
+  rk2_note TEXT,
+  fa_note TEXT,
+  quarter_note TEXT,
   CONSTRAINT grades_pkey PRIMARY KEY (id),
   CONSTRAINT grades_user_id_fkey FOREIGN KEY (user_id) REFERENCES auth.users(id)
 );

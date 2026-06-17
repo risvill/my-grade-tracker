@@ -4,6 +4,7 @@ import { supabase } from '../../utils/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
 import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';
+import { NoteBlock } from './NoteBlock';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
@@ -12,6 +13,12 @@ export const CalculatorWidget = () => {
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
+
+  const [rk1Note, setRk1Note] = useState('');
+  const [rk2Note, setRk2Note] = useState('');
+  const [faNote, setFaNote] = useState('');
+  const [quarterNote, setQuarterNote] = useState('');
+
   const [history, setHistory] = useState<any[]>([]);
   const [page, setPage] = useState(0);
   const [hasMore, setHasMore] = useState(true);
@@ -148,7 +155,6 @@ const deleteHistoryItem = async (id: string) => {
     return;
   }
 
-  // 3. Обновляем локальное состояние ТОЛЬКО после успеха в БД
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 
@@ -161,7 +167,8 @@ const fetchHistory = async (page = 0, pageSize = 8) => {
 
   const { data, error } = await supabase
     .from('grades')
-    .select('id, title, rk1, rk2, exam, total_percent, is_pinned, created_at')
+    .select(`
+    id, title, rk1, rk2, exam, fa_grades, total_percent, is_pinned, rk1_note, rk2_note, fa_note, quarter_note, created_at`)
     .eq('user_id', user.id)
     .order('created_at', { ascending: false })
     .range(from, to);
@@ -252,6 +259,10 @@ const handleReset = () => {
   setRk2('');
   setExam('');
   setFaGrades([]);
+  setRk1Note(''); 
+  setRk2Note('');
+  setFaNote('');
+  setQuarterNote('');
   setNewSubjectName('');
   setSaveStatus('idle');
 };
@@ -319,6 +330,10 @@ const insertNewRecord = async (baseName: string) => {
     rk2: formatScore(rk2),
     exam: formatScore(exam),
     fa_grades: faGrades || [],
+    rk1_note: rk1Note,
+    rk2_note: rk2Note,
+    fa_note: faNote,
+    quarter_note: quarterNote,
     total_percent: parseFloat(total.toFixed(1)),
     is_pinned: false,
     user_id: user.id 
@@ -395,6 +410,10 @@ const handleRk2Change = (val: string) => {
     rk1: formatValue(rk1),
     rk2: formatValue(rk2),
     exam: formatValue(exam),
+    rk1_note: rk1Note,
+    rk2_note: rk2Note,
+    fa_note: faNote,
+    quarter_note: quarterNote,
     fa_grades: Array.isArray(faGrades) ? faGrades : [],
     total_percent: Number(total.toFixed(1))
   };
@@ -439,6 +458,10 @@ const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateA
     setRk2(item.rk2?.toString() || '');
     setExam(item.exam?.toString() || '');
     setFaGrades(item.fa_grades || []);
+    setRk1Note(item.rk1_note || "");
+    setRk2Note(item.rk2_note || "");
+    setFaNote(item.fa_note || "");
+    setQuarterNote(item.quarter_note || "");
     setNewSubjectName(item.title);
     setSaveStatus('idle'); 
     setActiveSubject(normalizedItem);
@@ -561,6 +584,12 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                     style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cbd5e0', textAlign: 'center', background: '#f1f5f9', color: '#64748b' }} 
                   />
                 </div>
+                <NoteBlock 
+                  label="RK-1 Note"
+                  note={rk1Note}
+                  onSave={(val: string) => setRk1Note(val)} // Просто обновляем стейт
+                  onDelete={() => setRk1Note('')}          // Просто очищаем стейт
+                />
               </div>
 
               {/* РК-2 (по аналогии) */}
@@ -577,9 +606,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                     disabled={isRk2Disabled}
                     placeholder="Score"
                     style={{ 
-       
                       borderColor: getScoreColor(rk2),
-        
                     }}
                   />
                   <span style={{ color: '#94a3b8' }}>/</span>
@@ -590,6 +617,12 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                     style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cbd5e0', textAlign: 'center', background: '#f1f5f9', color: '#64748b' }} 
                   />
                 </div>
+                <NoteBlock 
+                  label="RK-2 Note"
+                  note={rk2Note}
+                  onSave={(val: string) => setRk2Note(val)} // Просто обновляем стейт
+                  onDelete={() => setRk2Note('')}          // Просто очищаем стейт
+                />
               </div>
             </div>
 
@@ -605,7 +638,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                   marginBottom: '24px'        
                 }}>
                   <div style={{ flex: '1', maxWidth: '600px' }}>
-                  <section style={{ height: '257.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
+                  <section style={{ height: '277.5px' ,background: 'var(--bg-secondary)',boxShadow: 'var(--card-shadow)',  padding: '30px', borderRadius: '20px', border: '1px solid var(--border-primary)', width:'100%', maxWidth: '585px' }}>
                     <div style={{display: 'flex', justifyContent: 'space-between'}}>
                       <div style={{display: 'flex', justifyContent: 'space-between', width: '100%'}}>
                       <h3 style={{ flex: '1', margin: '8px' ,fontSize: '17px', fontWeight: '700', color: '#666' }}>Formative Assessment (FA)</h3>
@@ -635,6 +668,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                             }}
                             style={{ flex: 1, marginBottom: 0, maxWidth: '70px' }}
                           />
+                          <div style={{display: 'flex'}}>
                           <button 
                             onClick={() => {
                               if (!currentFa) return;
@@ -650,6 +684,8 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                           >
                             {editingId ? 'Update' : 'Add'}
                           </button>
+
+                          </div>
                           
                         </div>
                         
@@ -735,7 +771,22 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                       </div>
                     )}
                     
-                 
+                    {faGrades.length > 0 && (
+                      <div style={{ 
+                        marginTop: '15px', 
+                        padding: '16px', 
+                        background: '#eff6ff', 
+                        border: '1px solid #dbeafe', 
+                        borderRadius: '12px' 
+                      }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <span style={{ color: '#1e40af', fontWeight: '600',fontSize: '16px', marginRight: '5px' }}>Current (FA) Avg:</span>
+                          <span style={{  background: '#3b82f6' ,borderRadius: '10px', padding:'10px', fontSize: '1.0rem', fontWeight: '600', color: '#ffffff' }}>
+                            {faAvg.toFixed(1)}%
+                          </span>
+                        </div>
+                      </div>
+                    )}
           </section>
           </div>
 
@@ -747,7 +798,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                 borderRadius: '20px', 
                 border: '1px solid #e2e8f0',
                 flexShrink: 0,
-                height: '257.5px',
+                height: '277.5px',
                 boxShadow: 'var(--card-shadow)', 
               }}>
                 <h3 style={{ marginBottom: '10px', fontSize: '16px', fontWeight: '700', color: '#666' }}>Summative Assessment for Quarter</h3>
@@ -773,22 +824,13 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                     style={{fontSize: '16px', width: '70px', padding: '8px', borderRadius: '12px', border: '2px solid #cad5e2', textAlign: 'center', background: '#fafdff', color: '#8f9db1' }} 
                   />
                 </div>
-                {faGrades.length > 0 && (
-                  <div style={{ 
-                    marginTop: '15px', 
-                    padding: '16px', 
-                    background: '#eff6ff', 
-                    border: '1px solid #dbeafe', 
-                    borderRadius: '12px' 
-                  }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ color: '#1e40af', fontWeight: '600',fontSize: '16px', marginRight: '5px' }}>Current (FA) Avg:</span>
-                      <span style={{  background: '#3b82f6' ,borderRadius: '10px', padding:'10px', fontSize: '1.0rem', fontWeight: '600', color: '#ffffff' }}>
-                        {faAvg.toFixed(1)}%
-                      </span>
-                    </div>
-                  </div>
-                )}
+                <NoteBlock 
+                  label="Exam Note"
+                  note={quarterNote}
+                  onSave={(val: string) => setQuarterNote(val)} // Просто обновляем стейт
+                  onDelete={() => setQuarterNote('')}          // Просто очищаем стейт
+                />
+                
              </section>
           </div>
               {/* Режим выбора: Сохранить или Сбросить */}
@@ -947,11 +989,9 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
             </div>
 
             <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {/* Сортируем: сначала закрепленные, потом остальные */}
               {[...history]
                 .sort((a, b) => (b.is_pinned ? 1 : 0) - (a.is_pinned ? 1 : 0))
                 .map((item) => {
-                  // Безопасное форматирование даты
                   const formattedDate = item.created_at 
                     ? new Date(item.created_at).toLocaleDateString('ru-RU', { day: 'numeric', month: 'long', year: 'numeric' })
                     : "Дата неизвестна";
@@ -961,7 +1001,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                       key={item.id} 
                       style={{ 
                         background: item.is_pinned ? '#fefce8' : '#f8fafc',
-                        border: item.is_pinned ? '1px solid #fde047' : '1px solid #e2e8f0',
+                        border: item.is_pinned ? '1px solid #fbf2c2' : '1px solid #e2e8f0',
                         borderRadius: '16px', 
                         padding: '16px 20px',
                         display: 'flex', 
