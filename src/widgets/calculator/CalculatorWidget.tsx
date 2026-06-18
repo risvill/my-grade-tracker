@@ -9,8 +9,14 @@ import { ImportModal } from './ImportModal';
 import { ExportModal } from './ExportModal';
 import { ACHIEVEMENTS, unlockAchievement, type Achievement } from '../../utils/achievments';
 import { BadgeBar } from './BadgeBar';
-
-
+import { 
+  calculateTotal, 
+  calculateFaAvg, 
+  formatScore, 
+  getBackgroundColor, 
+  getScoreColor 
+} from '../calculator/CalculatorLogic';
+import { clampScore, handleScoreChange } from './scoreValidation';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
@@ -61,27 +67,14 @@ const { userSettings, setUserSettings, userId } = useOutletContext<{
   const [editingId, setEditingId] = useState<number | null>(null);
 
   const [timer, setTimer] = useState<ReturnType<typeof setTimeout> | null>(null);
-  const total = ((Number(rk1) + Number(rk2)) / 2) * 0.6 + Number(exam) * 0.4;
-  const faAvg = faGrades.length > 0 
-    ? faGrades.reduce((acc, curr) => acc + Number(curr.value), 0) / faGrades.length 
-    : 0;
+  const total = calculateTotal(rk1, rk2, exam);
+  const faAvg = calculateFaAvg(faGrades);
   const gradeInfo = getGradeInfo(total);
+  const scoreColor = getScoreColor(total);
+  const bgColor = getBackgroundColor(gradeInfo.letter);
 
-  const formatScore = (val: any) => {
-    if (val === "" || val === undefined || val === null || val === "NaN") {
-      return null;
-    }
-    const num = Number(val);
-    return isNaN(num) ? null : num;
-  };
 const [isDirty, setIsDirty] = useState(false);
 
-const getBackgroundColor = (letter: string) => {
-  if (letter === 'A' || letter === 'A-') return '#38a169'; // Зеленый (5)
-  if (letter.startsWith('B')) return '#dd6b20';            // Оранжевый (4)
-  if (letter.startsWith('C')) return '#e53e3e';            // Красный (3)
-  return '#c05621';                                        // Темно-оранжевый (2)
-};
 const handleInputChange = (setter: Function, value: string, originalValue: string | undefined) => {
   setter(value);
   setIsDirty(value !== (originalValue?.toString() || ""));
@@ -193,14 +186,6 @@ const togglePin = async (id: string) => {
       i.id === id ? { ...i, is_pinned: newPinnedStatus } : i
     )
   );
-};
-
-const getScoreColor = (score: any) => {
-  const num = Number(score);
-  if (!score || num < 50) return '#e53e3e'; 
-  if (num >= 50 && num <= 69) return '#e53e3e'; 
-  if (num >= 70 && num <= 89) return '#d69e2e'; 
-  return '#38a169'; 
 };
 
 const deleteHistoryItem = async (id: string) => {
@@ -477,26 +462,19 @@ const { error } = await supabase.from('grades').insert([newRecord]);
   triggerAchievement('first_grade');
 };
 const handleRk1Change = (val: string) => {
-  const num = Number(val);
-  const validatedVal = val === "" ? "" : Math.max(0, Math.min(100, num)).toString();
-  setRk1(validatedVal);
-  handleInputChange(setRk1, validatedVal, activeSubject?.rk1?.toString());
-  if (validatedVal === "") {
+  handleScoreChange(val, setRk1, activeSubject?.rk1?.toString(), handleInputChange);
+  
+  // Дополнительная логика сброса (если нужно)
+  if (val === "") {
     setRk2(""); 
     setExam(""); 
   }
 };
 
 const handleRk2Change = (val: string) => {
-
-  const num = Number(val);
-  const validatedVal = val === "" ? "" : Math.max(0, Math.min(100, num)).toString();
+  handleScoreChange(val, setRk2, activeSubject?.rk2?.toString(), handleInputChange);
   
-  setRk2(validatedVal);
-
-  handleInputChange(setRk2, validatedVal, activeSubject?.rk2?.toString());
-  
-  if (validatedVal === "") {
+  if (val === "") {
     setExam("");
   }
 };
@@ -564,17 +542,6 @@ const handleRk2Change = (val: string) => {
   }
 };
 
-const handleScoreChange = (value: string, setter: React.Dispatch<React.SetStateAction<any>>, originalValue?: string) => {
-  if (value === "") {
-    setter(""); 
-    handleInputChange(setter, "", originalValue); 
-  } else {
-    const num = Math.max(0, Math.min(100, Number(value)));
-    const strNum = num.toString();
-    setter(strNum);
-    handleInputChange(setter, strNum, originalValue);
-  }
-};
   const loadIntoCalculator = (item: any) => {
     const normalizedItem = {
     ...item,
