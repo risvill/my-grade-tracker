@@ -8,6 +8,9 @@ import { NoteBlock } from './NoteBlock';
 import { ImportModal } from './ImportModal';
 import { ExportModal } from './ExportModal';
 import { ACHIEVEMENTS, unlockAchievement, type Achievement } from '../../utils/achievments';
+import { BadgeBar } from './BadgeBar';
+
+
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
@@ -18,6 +21,14 @@ export const CalculatorWidget = () => {
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
+
+  const [unlocked, setUnlocked] = useState<string[]>([]);
+  useEffect(() => {
+    const saved = localStorage.getItem('unlocked_achievements');
+    if (saved) {
+      setUnlocked(JSON.parse(saved));
+    }
+  }, []);
 
 const [congratsModal, setCongratsModal] = useState<Achievement | null>(null);
 
@@ -215,11 +226,14 @@ const deleteHistoryItem = async (id: string) => {
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
 const triggerAchievement = (id: string) => {
-  unlockAchievement(id, (unlockedId) => {
-    const ach = ACHIEVEMENTS.find(a => a.id === unlockedId);
-    setCongratsModal(ach || null);
-  });
-};
+    unlockAchievement(id, (unlockedId) => {
+      const ach = ACHIEVEMENTS.find(a => a.id === unlockedId);
+      setCongratsModal(ach || null);
+      
+      // ВАЖНО: обновляем стейт, чтобы BadgeBar сразу "зажег" иконку
+      setUnlocked(prev => [...prev, unlockedId]);
+    });
+  };
 
 const checkAllAchievements = (currentData: any[]) => {
   // Получаем список УЖЕ разблокированных ачивок из localStorage
@@ -588,6 +602,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
 
   return (
     <div id="wrapper">
+      
       {blocker.state === "blocked" && (
         <div className="modal">
           <div className="modal-content">
@@ -602,7 +617,9 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
           </div>
         </div>
       )}
+      
       <main className="layout" >
+        <BadgeBar unlocked={unlocked} />
         <section style={{ 
           background: 'var(--bg-secondary)', 
           padding: '30px', 
@@ -1083,6 +1100,8 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
         </div>
         </div>
         )}
+
+        
 
       {/* Вынос истории за пределы MainLayout (если нужно) или управление через контекст */}
       <div 

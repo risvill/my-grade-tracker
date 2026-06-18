@@ -31,20 +31,20 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: 'consistent', title: 'Consistent', description: 'Got at least 80% in one subject', icon: '✅', condition: (data) => data.some(i => i.total_percent >= 80) },
   { id: 'underdog', title: 'Underdog', description: 'Over 95% in at least one subject', icon: '🔥', condition: (data) => data.some(i => i.total_percent > 95) },
   { id: 'halfway_there', title: 'Halfway There', description: 'Added 12 subjects', icon: '⏳', condition: (data) => data.length >= 12 },
-  { id: 'gold_standard', title: 'Gold Standard', description: 'Average score > 85%', icon: '🏆', condition: (data) => data.length > 0 && (data.reduce((acc, curr) => acc + curr.total_percent, 0) / data.length) > 85 }
+  { id: 'gold_standard', title: 'Gold Standard', description: 'Average score > 85%', icon: '🏆', condition: (data) => data.length > 0 && (data.reduce((acc, curr) => acc + curr.total_percent, 0) / data.length) > 85 },
+  { id: 'early_bird', title: 'Early Bird', description: 'Added a grade before 9:00 AM', icon: '🌅', condition: (data) => {const hour = new Date().getHours();return hour < 9;}},
+  { id: 'balance_master', title: 'Balance Master', description: 'Average score is exactly 75%', icon: '⚖️', condition: (data) => {if (data.length === 0) return false;const avg = data.reduce((acc, curr) => acc + curr.total_percent, 0) / data.length;return Math.round(avg) === 75;}}
 ];
 
 export const unlockAchievement = (id: string, onShowModal: (id: string) => void) => {
-  // Получаем список уже разблокированных
+
   const saved = localStorage.getItem('unlocked_achievements');
   const unlocked = saved ? JSON.parse(saved) : [];
   
-  // Если еще нет в списке — разблокируем
   if (!unlocked.includes(id)) {
     const newUnlocked = [...unlocked, id];
     localStorage.setItem('unlocked_achievements', JSON.stringify(newUnlocked));
     
-    // Показываем поздравление только сейчас
     onShowModal(id);
   }
 };
