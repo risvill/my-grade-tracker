@@ -215,18 +215,14 @@ const triggerAchievement = (id: string) => {
     unlockAchievement(id, (unlockedId) => {
       const ach = ACHIEVEMENTS.find(a => a.id === unlockedId);
       setCongratsModal(ach || null);
-      
-      // ВАЖНО: обновляем стейт, чтобы BadgeBar сразу "зажег" иконку
       setUnlocked(prev => [...prev, unlockedId]);
     });
   };
 
 const checkAllAchievements = (currentData: any[]) => {
-  // Получаем список УЖЕ разблокированных ачивок из localStorage
   const unlocked = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
 
   ACHIEVEMENTS.forEach((ach) => {
-    // Проверяем: условие выполнено И ачивка ЕЩЕ НЕ разблокирована
     if (ach.condition(currentData) && !unlocked.includes(ach.id)) {
       triggerAchievement(ach.id);
     }
