@@ -17,6 +17,7 @@ import {
   getScoreColor 
 } from '../calculator/CalculatorLogic';
 import { clampScore, handleScoreChange } from './scoreValidation';
+import { deleteSelected, getFirstSelected, toggleSelection } from './faSelectionUtils';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
@@ -314,25 +315,30 @@ const handleRename = async (id: string) => {
   }
 };
 const handleDeleteSelected = () => {
-  setFaGrades(faGrades.filter(g => !selectedFaIds.includes(g.id)));
+  setFaGrades(deleteSelected(faGrades, selectedFaIds));
   setSelectedFaIds([]);
   setIsSelectionMode(false);
 };
 
 const handleEditSelected = () => {
-  const item = faGrades.find(g => g.id === selectedFaIds[0]);
+  const item = getFirstSelected(faGrades, selectedFaIds);
   if (item) {
-    setCurrentFa(item.value); 
-    setEditingId(item.id);    
-    setSelectedFaIds([]);     
+    setCurrentFa(item.value);
+    setEditingId(item.id);
+    setSelectedFaIds([]);
     setIsSelectionMode(false);
   }
 };
 
 const handlePressStart = (id: number) => {
   const timeout = setTimeout(() => {
-    toggleSelection(id); 
+    setSelectedFaIds(prev => {
+      const newSelection = toggleSelection(prev, id);
+      setIsSelectionMode(newSelection.length > 0);
+      return newSelection;
+    });
   }, 300);
+  
   setTimer(timeout);
 };
 
@@ -343,17 +349,10 @@ const handlePressEnd = () => {
   }
 };
 
-const toggleSelection = (id: number) => {
-  if (selectedFaIds.includes(id)) {
-    // Убираем из выбора
-    const newSelection = selectedFaIds.filter(selectedId => selectedId !== id);
-    setSelectedFaIds(newSelection);
-    if (newSelection.length === 0) setIsSelectionMode(false);
-  } else {
-    // Добавляем в выбор
-    setSelectedFaIds([...selectedFaIds, id]);
-    setIsSelectionMode(true);
-  }
+const handleToggle = (id: number) => {
+  const newSelection = toggleSelection(selectedFaIds, id);
+  setSelectedFaIds(newSelection);
+  setIsSelectionMode(newSelection.length > 0);
 };
 
 const handleReset = () => {
