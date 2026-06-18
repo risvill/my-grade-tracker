@@ -7,6 +7,7 @@ import { SubjectContext } from '../../utils/SubjectContext';
 import { NoteBlock } from './NoteBlock';
 import { ImportModal } from './ImportModal';
 import { ExportModal } from './ExportModal';
+import { ACHIEVEMENTS, unlockAchievement, type Achievement } from '../../utils/achievments';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
@@ -17,6 +18,8 @@ export const CalculatorWidget = () => {
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
+
+const [congratsModal, setCongratsModal] = useState<Achievement | null>(null);
 
   const [rk1Note, setRk1Note] = useState('');
   const [rk2Note, setRk2Note] = useState('');
@@ -210,6 +213,24 @@ const deleteHistoryItem = async (id: string) => {
   }
 
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
+};
+const triggerAchievement = (id: string) => {
+  unlockAchievement(id, (unlockedId) => {
+    const ach = ACHIEVEMENTS.find(a => a.id === unlockedId);
+    setCongratsModal(ach || null);
+  });
+};
+
+const checkAllAchievements = (currentData: any[]) => {
+  // Получаем список УЖЕ разблокированных ачивок из localStorage
+  const unlocked = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
+
+  ACHIEVEMENTS.forEach((ach) => {
+    // Проверяем: условие выполнено И ачивка ЕЩЕ НЕ разблокирована
+    if (ach.condition(currentData) && !unlocked.includes(ach.id)) {
+      triggerAchievement(ach.id);
+    }
+  });
 };
 
 const fetchHistory = async (page = 0, pageSize = 8, course: number, semester: number) => {
@@ -432,7 +453,14 @@ const { error } = await supabase.from('grades').insert([newRecord]);
     console.error("Ошибка Supabase:", error);
   } else {
     finishSave();
+    
+    const updatedData = [...grades, newRecord]; 
+    
+
+    checkAllAchievements(updatedData);
   }
+
+  triggerAchievement('first_grade');
 };
 const handleRk1Change = (val: string) => {
   const num = Number(val);
@@ -1042,6 +1070,19 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
               )}
               
       </main>
+      {congratsModal && (
+        <div className="modal">
+        <div className="modal-content animate-pop-in">
+          <div className="achievement-icon">{congratsModal.icon}</div>
+          <h2>Achievement Unlocked!</h2>
+          <p className="achievement-title">{congratsModal.title}</p>
+          <p className="achievement-desc">{congratsModal.description}</p>
+          <button className="primary-btn" onClick={() => setCongratsModal(null)}>
+            Awesome!
+          </button>
+        </div>
+        </div>
+        )}
 
       {/* Вынос истории за пределы MainLayout (если нужно) или управление через контекст */}
       <div 

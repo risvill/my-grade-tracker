@@ -67,7 +67,7 @@ export const MainLayout = () => {
           onClose={() => setIsSettingsOpen(false)}
           onSave={(newSettings) => {
           setUserSettings(newSettings);
-          refreshData(); // <-- ВЫЗЫВАЕМ ТУТ!
+          refreshData(); 
           setIsSettingsOpen(false);
   }}
         />
