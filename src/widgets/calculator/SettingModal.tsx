@@ -2,56 +2,91 @@ import { useState, useEffect } from 'react';
 import { supabase } from './../../utils/supabaseClient';
 
 interface SettingsModalProps {
-  isModalOpen: boolean; // Переименовали
+  isModalOpen: boolean;
   userId: string;
   onClose: () => void;
-  onSave: () => void;
+  onSave: (newSettings: { course: number; semester: number }) => void; // Передаем данные наружу
 }
 
 export const SettingsModal = ({ isModalOpen, userId, onClose, onSave }: SettingsModalProps) => {
-  if (!isModalOpen) return null;
   const [course, setCourse] = useState(1);
   const [semester, setSemester] = useState(1);
+  const [loading, setLoading] = useState(false);
 
-  // При открытии тянем текущие настройки из базы
+  // Загружаем настройки из БД при открытии
   useEffect(() => {
-    const fetchSettings = async () => {
-      const { data } = await supabase.from('profiles').select('*').eq('id', userId).single();
-      if (data) {
-        setCourse(data.current_course);
-        setSemester(data.current_semester);
-      }
-    };
-    fetchSettings();
-  }, [userId]);
+    if (isModalOpen) {
+      const fetchSettings = async () => {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('current_course, current_semester')
+    .eq('id', userId); // Убрали .single()
+
+  if (error) {
+    console.error("Ошибка:", error);
+  } else if (data && data.length > 0) {
+    setCourse(data[0].current_course);
+    setSemester(data[0].current_semester);
+  }
+};
+      fetchSettings();
+    }
+  }, [isModalOpen, userId]);
 
   const handleSave = async () => {
-    await supabase.from('profiles').update({ 
+  setLoading(true);
+
+  // Используем upsert вместо update
+  const { data, error } = await supabase
+    .from('profiles')
+    .upsert({ 
+      id: userId, // Обязательно передаем ID, чтобы Supabase знал, чью строку трогать
       current_course: course, 
       current_semester: semester 
-    }).eq('id', userId);
+    })
+    .select(); 
     
-    onSave(); // Обновит данные в CalculatorWidget
+  if (error) {
+    console.error("DEBUG: ОШИБКА UPSERT:", error);
+  } else {
+    console.log("DEBUG: Успешно сохранено (upsert):", data);
+    onSave({ course, semester });
     onClose();
-  };
+  }
+  
+  setLoading(false);
+};
+
+  if (!isModalOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal">
       <div className="modal-content">
         <h3>Academic Settings</h3>
-        <label>Course</label>
-        <select value={course} onChange={(e) => setCourse(Number(e.target.value))}>
-          {[1, 2, 3, 4].map(c => <option key={c} value={c}>{c} Course</option>)}
-        </select>
         
-        <label>Semester</label>
-        <select value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
-          {[1, 2, 3].map(s => <option key={s} value={s}>{s} Semester</option>)}
-        </select>
+        <div className="settings-form">
+            <div className="form-group">
+                <label>Course</label>
+                <select value={course} onChange={(e) => setCourse(Number(e.target.value))}>
+                {[1, 2, 3, 4].map(c => <option key={c} value={c}>{c} Course</option>)}
+                </select>
+            </div>
+                    
+            <div className="form-group">
+                <label>Semester</label>
+                <select value={semester} onChange={(e) => setSemester(Number(e.target.value))}>
+                <option value={1}>1 Semester</option>
+                <option value={2}>2 Semester</option>
+                <option value={3}>Summer Semester</option>
+                </select>
+            </div>
+            </div>
         
         <div className="modal-buttons">
-          <button onClick={onClose}>Cancel</button>
-          <button onClick={handleSave}>Save</button>
+          <button onClick={onClose} disabled={loading}>Cancel</button>
+          <button onClick={handleSave} disabled={loading}>
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
       </div>
     </div>

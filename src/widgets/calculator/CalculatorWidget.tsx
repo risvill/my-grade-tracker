@@ -2,12 +2,14 @@ import { useContext, useEffect, useState, useRef } from 'react';
 import { useOutletContext, useBlocker } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
-import { Pencil, Trash2, ArrowLeft } from 'lucide-react';
+import { Pencil, Trash2, ArrowLeft, Plus, X } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';
 import { NoteBlock } from './NoteBlock';
+import { ImportModal } from './ImportModal';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
+  const [isImportOpen, setIsImportOpen] = useState(false);
   const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(SubjectContext);
   const [name, setName] = useState(''); 
   const [rk1, setRk1] = useState('');
@@ -26,7 +28,11 @@ export const CalculatorWidget = () => {
   const [currentFa, setCurrentFa] = useState('');
 
 const [grades, setGrades] = useState<any[]>([]);
-  const [userSettings, setUserSettings] = useState({ course: 1, semester: 1 });
+const { userSettings, setUserSettings, userId } = useOutletContext<{ 
+    userSettings: { course: number, semester: number }, 
+    setUserSettings: React.Dispatch<React.SetStateAction<{ course: number, semester: number }>>,
+    userId: string | null 
+  }>();
 
   const [targetId, setTargetId] = useState<string | null>(null); 
   const targetIdRef = useRef<string | null>(null); 
@@ -68,6 +74,50 @@ let blocker = useBlocker(
     ({ currentLocation, nextLocation }) =>
       isDirty && currentLocation.pathname !== nextLocation.pathname
   );
+
+  const fetchProfileSettings = async () => {
+  if (!userId) return;
+
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('current_course, current_semester')
+    .eq('id', userId)
+    .single(); // Теперь, когда мы знаем, что запись точно есть, можно использовать .single()
+
+  if (error) {
+    console.error("Ошибка загрузки настроек профиля:", error);
+  } else if (data) {
+
+    setUserSettings({ 
+      course: data.current_course, 
+      semester: data.current_semester 
+    });
+  }
+};
+useEffect(() => {
+  if (userId) {
+    fetchProfileSettings(); // Загружаем настройки из БД
+  }
+}, [userId]); // Сработает один раз при авторизации
+
+// CalculatorWidget.tsx
+
+useEffect(() => {
+  if (userId && userSettings.course && userSettings.semester) {
+    // Эта функция сработает сама при любом изменении userSettings!
+    fetchGrades(userSettings.course, userSettings.semester);
+    
+    // Если история в этом же файле:
+    fetchHistory(0, 8, userSettings.course, userSettings.semester);
+    
+    console.log("Данные обновлены для:", userSettings.course, userSettings.semester);
+  }
+}, [userSettings.course, userSettings.semester, userId]);
+
+const refreshData = () => {
+  fetchGrades(userSettings.course, userSettings.semester);
+  fetchHistory(0, 8, userSettings.course, userSettings.semester);
+};// <-- Эти переменные в массиве - ключ к успеху!
 
 useEffect(() => {
 
@@ -199,8 +249,8 @@ const fetchGrades = async (course: number, semester: number) => {
     .from('grades')
     .select('*')
     .eq('user_id', user.id)
-    .eq('course', course)
-    .eq('semester', semester);
+    .eq('course', userSettings.course)
+    .eq('semester', userSettings.semester);
 
   if (error) {
     console.error("Error fetching grades:", error);
@@ -368,10 +418,13 @@ const insertNewRecord = async (baseName: string) => {
     quarter_note: quarterNote,
     total_percent: parseFloat(total.toFixed(1)),
     is_pinned: false,
-    user_id: user.id 
+    user_id: user.id,
+    course: userSettings.course, 
+    semester: userSettings.semester
   };
 
-  const { error } = await supabase.from('grades').insert([newRecord]);
+console.log("DEBUG: Отправляем объект в БД:", newRecord);
+const { error } = await supabase.from('grades').insert([newRecord]);
   
   if (error) {
     console.error("Ошибка Supabase:", error);
@@ -1017,7 +1070,23 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
           >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h3 style={{ margin: 0, fontSize: '20px', fontWeight: '700' }}>Calculation History</h3>
-              <button onClick={() => setIsHistoryOpen(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}>✕</button>
+              <div style={{display: 'flex', marginTop: '6px'}}>
+              <button style={{ background: 'none', border: 'none', fontSize: '35px', cursor: 'pointer', color: '#707f94' }} onClick={() => setIsImportOpen(true)}><Plus size={29} strokeWidth={1.5} /></button>
+              {isImportOpen && (
+              <ImportModal 
+                userId={userId} 
+                course={userSettings.course} 
+                semester={userSettings.semester} 
+                onClose={() => setIsImportOpen(false)}
+                onImportSuccess={() => {
+                    // Тут вызываем обновление данных, как мы делали раньше
+                    refreshData(); 
+                }}
+              />
+            )}
+              
+              <button onClick={() => setIsHistoryOpen(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}><X size={29} strokeWidth={1.5} /></button>
+            </div>
             </div>
 
             <div style={{ maxHeight: 'calc(100vh - 100px)', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '16px' }}>
