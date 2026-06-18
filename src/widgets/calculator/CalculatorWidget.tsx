@@ -601,7 +601,7 @@ const isRk2Disabled = !rk1 || rk1 === "";
 const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === ""; 
 
   return (
-    <div id="wrapper">
+    <div className="wrapper">
       
       {blocker.state === "blocked" && (
         <div className="modal">
@@ -618,7 +618,7 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
         </div>
       )}
       
-      <main className="layout" >
+      <main >
         <BadgeBar unlocked={unlocked} />
         <section style={{ 
           background: 'var(--bg-secondary)', 

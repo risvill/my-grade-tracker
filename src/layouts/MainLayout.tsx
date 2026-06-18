@@ -73,7 +73,7 @@ export const MainLayout = () => {
         />
       )}
       
-      <main className="main-content-container" style={{ flex: 1, padding: '40px 20px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+      <main className="main-content-container" style={{ flex: 1, padding: '0 20px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
         <Outlet context={{ isHistoryOpen, setIsHistoryOpen, userSettings, setUserSettings, userId }} />
       </main>
     </div>
