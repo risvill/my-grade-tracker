@@ -2,14 +2,16 @@ import { useContext, useEffect, useState, useRef } from 'react';
 import { useOutletContext, useBlocker } from 'react-router-dom';
 import { supabase } from '../../utils/supabaseClient';
 import { getGradeInfo } from '../../utils/gradeConverter';
-import { Pencil, Trash2, ArrowLeft, Plus, X } from 'lucide-react';
+import { Pencil, Trash2, ArrowLeft, Plus, X, Download } from 'lucide-react';
 import { SubjectContext } from '../../utils/SubjectContext';
 import { NoteBlock } from './NoteBlock';
 import { ImportModal } from './ImportModal';
+import { ExportModal } from './ExportModal';
 
 export const CalculatorWidget = () => {
   const { isHistoryOpen, setIsHistoryOpen } = useOutletContext<any>();
   const [isImportOpen, setIsImportOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const { activeSubject, setActiveSubject, updateSubjectInContext } = useContext(SubjectContext);
   const [name, setName] = useState(''); 
   const [rk1, setRk1] = useState('');
@@ -1084,7 +1086,14 @@ const isExamDisabled = !rk1 || !rk2 || rk1 === "" || rk2 === "";
                 }}
               />
             )}
-              
+              <button onClick={() => setIsExportOpen(true)}><Download size={29} strokeWidth={1.5}/></button> 
+              {isExportOpen && (
+                <ExportModal 
+                  data={grades} // Передаем список предметов, которые сейчас отображаются
+                  onClose={() => setIsExportOpen(false)} 
+                />
+              )}
+
               <button onClick={() => setIsHistoryOpen(false)} style={{ background: 'none', border: 'none', fontSize: '22px', cursor: 'pointer', color: '#64748b' }}><X size={29} strokeWidth={1.5} /></button>
             </div>
             </div>
