@@ -8,11 +8,6 @@ input::-webkit-inner-spin-button {
   -webkit-appearance: none;
   margin: 0;
 }
-
-/* Скрываем стрелки для Firefox */
-input[type=number] {
-  -moz-appearance: textfield;
-}
 :root {
   --bg-primary: #f8f8f8;
   --bg-secondary: #ffffff;
