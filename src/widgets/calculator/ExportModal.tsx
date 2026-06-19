@@ -51,7 +51,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ data, onClose }) => {
   const exportToPDF = async () => {
     const doc = new jsPDF();
     
-    // --- Шапка с метаданными ---
     doc.setFontSize(22);
     doc.text("Academic Performance Report", 14, 15);
     doc.setFontSize(11);
@@ -60,7 +59,6 @@ export const ExportModal: React.FC<ExportModalProps> = ({ data, onClose }) => {
     doc.setDrawColor(200);
     doc.line(14, 42, 196, 42);
 
-    // Функция для создания графика
     const addChartToPDF = async (label: string, dataKey: keyof GradeItem, color: string, yPos: number) => {
       const validData = data.filter(d => d[dataKey] !== undefined && d[dataKey] !== null);
       const canvas = document.createElement('canvas');
@@ -83,14 +81,12 @@ export const ExportModal: React.FC<ExportModalProps> = ({ data, onClose }) => {
       }
     };
 
-    // Рисуем графики (начинаем ниже шапки)
     await addChartToPDF('RK1 Scores', 'rk1', '#3498db', 45);
     await addChartToPDF('RK2 Scores', 'rk2', '#f1c40f', 120);
     doc.addPage();
     await addChartToPDF('Exam Scores', 'exam', '#e74c3c', 20);
     await addChartToPDF('Total Percent', 'total_percent', '#27ae60', 100);
 
-    // Таблица
     doc.addPage();
     const tableData = data.map(item => [item.title, item.rk1 ?? '-', item.rk2 ?? '-', item.exam ?? '-', item.total_percent ?? '-']);
     autoTable(doc, { 

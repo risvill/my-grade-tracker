@@ -5,7 +5,7 @@ interface SettingsModalProps {
   isModalOpen: boolean;
   userId: string;
   onClose: () => void;
-  onSave: (newSettings: { course: number; semester: number }) => void; // Передаем данные наружу
+  onSave: (newSettings: { course: number; semester: number }) => void; 
 }
 
 export const SettingsModal = ({ isModalOpen, userId, onClose, onSave }: SettingsModalProps) => {
@@ -13,14 +13,13 @@ export const SettingsModal = ({ isModalOpen, userId, onClose, onSave }: Settings
   const [semester, setSemester] = useState(1);
   const [loading, setLoading] = useState(false);
 
-  // Загружаем настройки из БД при открытии
   useEffect(() => {
     if (isModalOpen) {
       const fetchSettings = async () => {
   const { data, error } = await supabase
     .from('profiles')
     .select('current_course, current_semester')
-    .eq('id', userId); // Убрали .single()
+    .eq('id', userId); 
 
   if (error) {
     console.error("Ошибка:", error);
@@ -36,11 +35,10 @@ export const SettingsModal = ({ isModalOpen, userId, onClose, onSave }: Settings
   const handleSave = async () => {
   setLoading(true);
 
-  // Используем upsert вместо update
   const { data, error } = await supabase
     .from('profiles')
     .upsert({ 
-      id: userId, // Обязательно передаем ID, чтобы Supabase знал, чью строку трогать
+      id: userId, 
       current_course: course, 
       current_semester: semester 
     })

@@ -5,7 +5,6 @@ interface BadgeBarProps {
 }
 
 export const BadgeBar = ({ unlocked }: BadgeBarProps) => {
-    console.log("Текущий список разблокированных ID:", unlocked);
   return (
     <div className="badge-bar" style={{ display: 'flex', gap: '15px', padding: '20px', overflowX: 'auto', justifyContent: 'center' }}>
       {ACHIEVEMENTS.map((ach) => {
@@ -22,7 +21,9 @@ export const BadgeBar = ({ unlocked }: BadgeBarProps) => {
             }}
           >
             {ach.icon}
+            
           </div>
+          
         );
       })}
     </div>

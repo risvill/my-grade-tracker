@@ -27,7 +27,6 @@ export const NoteBlock = ({ note, label, onSave, onDelete }: NoteBlockProps) => 
           </p>
         </div>
 
-        {/* Иконка удаления появляется только если note существует */}
         {note && (
           <button 
             className="delete-btn" 

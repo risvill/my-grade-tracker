@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import Papa from 'papaparse';
-import { supabase } from '../..//utils/supabaseClient'; // Убедись, что путь правильный
+import { supabase } from '../..//utils/supabaseClient';
 
 interface ImportModalProps {
   userId: string | null;
@@ -31,7 +31,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
     complete: async (results) => {
       try {
         const importedData = results.data.map((item: any, index) => {
-          // Валидация: если нет оценок, выбрасываем ошибку
+    
           if (!item.title || !item.rk1 || !item.rk2 || !item.exam || !item.total_percent) {
                 throw new Error(`Ошибка в строке ${index + 1}: У предмета "${item.title}" не хватает данных для завершения!`);
             }
@@ -44,7 +44,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
                 rk1: Number(item.rk1),
                 rk2: Number(item.rk2),
                 exam: Number(item.exam),
-                total_percent: Number(item.total_percent), // Теперь мы используем твое название
+                total_percent: Number(item.total_percent), 
             };
         });
 
@@ -56,7 +56,7 @@ export const ImportModal: React.FC<ImportModalProps> = ({
         onImportSuccess();
         onClose();
       } catch (err: any) {
-        alert(err.message); // Пользователь увидит, какой именно предмет не прошел проверку
+        alert(err.message); 
       } finally {
         setLoading(false);
       }
