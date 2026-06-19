@@ -219,6 +219,15 @@ This means that users can only access their own data, even when interacting with
 | `id` | `uuid` | Primary Key, Foreign Key (`auth.users`) |
 | `current_course` | `integer` | Nullable, Default: `1` |
 | `current_semester` | `integer` | Nullable, Default: `1` |
+
+### Table: public.user_achievements
+
+| Name | Type | Constraints |
+| --- | --- | --- |
+| `user_id` | `uuid` | Foreign Key (`profiles.id`), Part of Primary Key |
+| `achievement_id` | `text` | Part of Primary Key |
+| `unlocked_at` | `timestamp` | Default: `now()` |
+
 ## Data Flow
 ```mermaid
 flowchart TD
