@@ -24,3 +24,13 @@ CREATE POLICY "Users can update own profile" ON public.profiles
 
 CREATE POLICY "Users can insert own profile" ON public.profiles
   FOR INSERT WITH CHECK (auth.uid() = id);
+
+alter table {your table} enable row level security;
+
+create policy "Users can view their own achievements" 
+on public.user_achievements for select 
+using (auth.uid() = user_id);
+
+create policy "Users can insert their own achievements" 
+on public.user_achievements for insert 
+with check (auth.uid() = user_id);
