@@ -32,6 +32,8 @@ The purpose of the project is to create a centralized tool for storing academic 
 ### Main Features
 
 - Secure registration and authentication with email verification and logout functionality
+- The system is structured by course and semester, allowing users to filter and manage subjects specifically for the selected academic period
+- Data display, PDF report generation, and analytical views are scoped dynamically based on the user's selected course and semester
 - Continuous user workflow across all system modules
 - Automatic real-time calculation of average and final grades with progress bar visualization and GPA conversion
 - CRUD operations for subjects and grades
@@ -40,7 +42,9 @@ The purpose of the project is to create a centralized tool for storing academic 
 - Grade prediction system for calculating the required result to achieve a target grade or avoid failing grades (2 and 3)
 - Goal difficulty evaluation system based on the user's available academic data
 - "What If?" simulation system that allows users to enter hypothetical grades and model possible final outcomes
-- Charts and visual analytics for displaying overall academic performance, including FA-specific and general grade statistics
+- Full support for CSV Import and Export for external data synchronization, plus PDF report generation for academic mobility documentation
+- Comprehensive dashboard for viewing performance reports, featuring statistical charts and stability analysis by comparing consecutive grades
+- Integrated vitest suite providing modular validation for each system component, ensuring easy verification of all logic blocks
 - User performance stability analysis through comparison of differences between consecutive grades
 
 
@@ -60,7 +64,6 @@ Below is the technology stack selected to ensure high performance, strict data t
 
 - **Tailwind CSS** — A utility-first CSS framework used for building responsive interfaces and a dynamic styling system. It supports responsive layouts, dynamic color states, condition-based styling, and overall UI consistency.
 
-- **Axios** — A library for handling HTTP requests and communication with external APIs or backend services.
 
 ### Backend & Database (Service-Based Architecture)
 
@@ -108,33 +111,46 @@ Additional libraries and utilities are used to implement specific application fe
 | Dependency | Purpose |
 | --- | --- |
 | `@supabase/supabase-js` | Client library for CRUD operations and interaction with the Supabase API |
-| `zustand` | Global state manager for storing active subject state and user-related data |
 | `lucide-react` | SVG icon library for UI visualization |
-| `clsx` | Utility for dynamic CSS class composition |
-| `tailwind-merge` | Optimization and conflict-free merging of Tailwind CSS classes |
+| `vitest` | `Framework for unit testing application logic` |
+| `react` & `react-dom` | `Core UI library and DOM management` |
+| `react-router-dom` | `Application routing and data loss prevention (useBlocker)` |
+| `recharts` & `chart.js` | `Data visualization and academic performance analytics` |
+| `jspdf` & `jspdf-autotable` | `Generation of PDF reports for academic mobility` |
+| `papaparse` | `CSV file parsing for data import and export functionality` |
+| `@radix-ui/react-tooltip` | `Accessible UI components for tooltips and badges` |
+
+
 ## Project Structure
 
 ```bash
 my-grade-tracker/
 ├── database/
-│  
+│   ├── policies.sql
+│   └── schema.sql
 ├── src/
 │   ├── layouts/
 │   ├── pages/
 │   ├── shared/
-│   │   ├── ui/
-│   │   └── utils/
+│   ├── styles/
+│   ├── tests/
+│   ├── utils/
 │   ├── widgets/
 │   │   ├── analytics/
 │   │   ├── calculator/
 │   │   └── predictor/
 │   ├── App.tsx
 │   └── main.tsx
-├── Dockerfile
+├── .dockerignore
+├── .gitignore
+├── .env
 ├── docker-compose.yml
+├── Dockerfile
+├── package-lock.json
 ├── package.json
-└── .env
-````
+├── README.md
+```
+
 
 ## API Endpoints (Supabase Auto-generated)
 
@@ -172,18 +188,65 @@ This means that users can only access their own data, even when interacting with
 ## Database Table
 
 
+### Table: public.grades
+
+
+
 | Name | Type | Constraints |
-|------|------|-------------|
-| `id` | `uuid` | Primary |
-| `title` | `text` |  Nullable |
-| `rk1` | `numeric` |  Nullable |
-| `rk2` | `numeric` |  Nullable |
-| `exam` | `numeric` |  Nullable |
-| `total_percent` | `numeric` |  Nullable |
-| `created_at` | `timestamptz` |  Nullable |
-| `fa_grades` | `jsonb` |  Nullable |
-| `is_pinned` | `bool` |  Nullable |
-| `user_id` | `uuid` |  Nullable |
+
+| --- | --- | --- |
+
+| `id` | `uuid` | Primary Key, Default: `gen_random_uuid()` |
+
+| `title` | `text` | Not Null |
+
+| `rk1` | `numeric` | Nullable, Check: 0-100 |
+
+| `rk2` | `numeric` | Nullable, Check: 0-100 |
+
+| `exam` | `numeric` | Nullable, Check: 0-100 |
+
+| `total_percent` | `numeric` | Nullable |
+
+| `created_at` | `timestamptz` | Default: `now()` |
+
+| `fa_grades` | `jsonb` | Nullable |
+
+| `is_pinned` | `boolean` | Nullable |
+
+| `user_id` | `uuid` | Foreign Key (`auth.users`), Default: `auth.uid()` |
+
+| `rk1_note` | `text` | Nullable |
+
+| `rk2_note` | `text` | Nullable |
+
+| `fa_note` | `text` | Nullable |
+
+| `quarter_note` | `text` | Nullable |
+
+| `course` | `integer` | Not Null, Default: 1 |
+
+| `semester` | `integer` | Not Null, Default: 1 |
+
+
+
+---
+
+
+
+### Table: public.profiles
+
+
+
+| Name | Type | Constraints |
+
+| --- | --- | --- |
+
+| `id` | `uuid` | Primary Key, Foreign Key (`auth.users`) |
+
+| `current_course` | `integer` | Nullable, Default: 1 |
+
+| `current_semester` | `integer` | Nullable, Default: 1 |
 
 ## Data Flow
 ```mermaid
@@ -257,43 +320,42 @@ To run the frontend locally in an isolated environment, follow these steps:
  - Your Dockerfile should build the React project and serve it using Nginx:
 ```
 FROM node:20-alpine AS build
-
 WORKDIR /app
-
 COPY package*.json ./
-RUN npm install
-
+RUN npm ci
 COPY . .
+
+ARG VITE_SUPABASE_URL
+ARG VITE_SUPABASE_ANON_KEY
+ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
+ENV VITE_SUPABASE_ANON_KEY=$VITE_SUPABASE_ANON_KEY
+
 RUN npm run build
 
 FROM nginx:alpine
-
 COPY --from=build /app/dist /usr/share/nginx/html
-
 EXPOSE 80
-
 CMD ["nginx", "-g", "daemon off;"]
 ```
 
 - Your `docker-compose.yml` file should define how to run the container and pass environment variables:
 
 ```
-version: '3.8'
-
 services:
-  web:
-    build: .
+  app:
+    build:
+      context: .
+      args:
+        - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
+        - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
     ports:
-      - "5173:80"
-    environment:
-      - VITE_SUPABASE_URL=${VITE_SUPABASE_URL}
-      - VITE_SUPABASE_ANON_KEY=${VITE_SUPABASE_ANON_KEY}
+      - "80:80"
 ```
 - Your `.env` file must be configured:
 
 ```
-VITE_SUPABASE_URL=your_supabase_project_url
-VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
+VITE_SUPABASE_URL=https://fduvadwenwpigmhymlfs.supabase.co
+VITE_SUPABASE_ANON_KEY=sb_publishable_Yp5gzyJ8yp5wyREeGLi2Og_OrDKqcU3
 
 ```
 
@@ -355,14 +417,7 @@ The project is planned to be further developed with additional features aimed at
 
 ### Planned Features
 
-- Adding comments for each grade entry to provide additional context (e.g., exam type, notes, feedback from instructors)
-
-- Sorting subjects and grades by semester to improve academic structure and long-term tracking
-
 - Introducing subject categories (e.g., active, completed, archived) to better organize academic progress
-
-- Export functionality (PDF/CSV) for academic reports and GPA summaries
-
 - Notification system for academic deadlines or low-performance alerts
 - Implementation of a Teacher role enabling academic data management, student oversight, and communication through email-based notification system.
 

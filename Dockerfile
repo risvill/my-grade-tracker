@@ -4,7 +4,6 @@ COPY package*.json ./
 RUN npm ci
 COPY . .
 
-# Добавь эти строки
 ARG VITE_SUPABASE_URL
 ARG VITE_SUPABASE_ANON_KEY
 ENV VITE_SUPABASE_URL=$VITE_SUPABASE_URL
