@@ -101,12 +101,20 @@ export const ExportModal: React.FC<ExportModalProps> = ({ data, onClose }) => {
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal">
       <div className="modal-content">
         <h3>Export Data</h3>
-        <button onClick={exportToCSV}>Download as CSV</button>
-        <button onClick={exportToPDF}>Download as PDF (with Analysis)</button>
-        <button onClick={onClose}>Cancel</button>
+        <div className="button-group">
+        <button onClick={exportToCSV} className="btn btn-csv">
+          Download as CSV
+        </button>
+        <button onClick={exportToPDF} className="btn btn-pdf">
+          Download as PDF (with Analysis)
+        </button>
+        <button onClick={onClose} className="btn btn-cancel">
+          Cancel
+        </button>
+      </div>
       </div>
     </div>
   );

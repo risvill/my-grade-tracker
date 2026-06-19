@@ -25,16 +25,35 @@ export const CalculatorWidget = () => {
   const [rk1, setRk1] = useState('');
   const [rk2, setRk2] = useState('');
   const [exam, setExam] = useState('');
-
-  const [unlocked, setUnlocked] = useState<string[]>([]);
-  useEffect(() => {
-    const saved = localStorage.getItem('unlocked_achievements');
-    if (saved) {
-      setUnlocked(JSON.parse(saved));
+  const [unlocked, setUnlocked] = useState<string[]>([]); // Вот где живет setUnlocked
+  const [congratsModal, setCongratsModal] = useState<any>(null);
+  const [achievementQueue, setAchievementQueue] = useState<Achievement[]>([]);
+useEffect(() => {
+  const loadInitialData = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      const savedAchievements = await fetchUserAchievements(user.id);
+      setUnlocked(savedAchievements);
     }
-  }, []);
+  };
+  loadInitialData();
+}, []); //
 
-const [congratsModal, setCongratsModal] = useState<Achievement | null>(null);
+const fetchUserAchievements = async (userId: string) => {
+  const { data, error } = await supabase
+    .from('user_achievements')
+    .select('achievement_id')
+    .eq('user_id', userId);
+
+  if (error) {
+    console.error("Ошибка при получении ачивок:", error);
+    return [];
+  }
+  
+  // Возвращаем только массив ID (например, ['first_grade', 'top_student'])
+  return data.map(row => row.achievement_id);
+};
+
 
   const [rk1Note, setRk1Note] = useState('');
   const [rk2Note, setRk2Note] = useState('');
@@ -72,6 +91,13 @@ const { userSettings, setUserSettings, userId } = useOutletContext<{
   const bgColor = getBackgroundColor(gradeInfo.letter);
 
 const [isDirty, setIsDirty] = useState(false);
+useEffect(() => {
+  if (achievementQueue.length > 0 && !congratsModal) {
+    const nextAchievement = achievementQueue[0];
+    setCongratsModal(nextAchievement);
+    setAchievementQueue(prev => prev.slice(1));
+  }
+}, [achievementQueue, congratsModal]);
 
 const handleInputChange = (setter: Function, value: string, originalValue: string | undefined) => {
   setter(value);
@@ -205,22 +231,24 @@ const deleteHistoryItem = async (id: string) => {
 
   setHistory(prevHistory => prevHistory.filter(item => item.id !== id));
 };
-const triggerAchievement = (id: string) => {
-    unlockAchievement(id, (unlockedId) => {
-      const ach = ACHIEVEMENTS.find(a => a.id === unlockedId);
-      setCongratsModal(ach || null);
-      setUnlocked(prev => [...prev, unlockedId]);
-    });
-  };
 
-const checkAllAchievements = (currentData: any[]) => {
-  const unlocked = JSON.parse(localStorage.getItem('unlocked_achievements') || '[]');
+const checkAllAchievements = async (currentData: any[], userId: string) => {
+  const currentUnlocked = await fetchUserAchievements(userId);
+  const queue: Achievement[] = [];
 
-  ACHIEVEMENTS.forEach((ach) => {
-    if (ach.condition(currentData) && !unlocked.includes(ach.id)) {
-      triggerAchievement(ach.id);
+  for (const ach of ACHIEVEMENTS) {
+    if (ach.condition(currentData) && !currentUnlocked.includes(ach.id)) {
+      await unlockAchievement(userId, ach.id);
+      
+      queue.push(ach);
+      
+      setUnlocked(prev => [...prev, ach.id]);
     }
-  });
+  }
+
+  if (queue.length > 0) {
+    setAchievementQueue(queue);
+  }
 };
 
 const fetchHistory = async (page = 0, pageSize = 8, course: number, semester: number) => {
@@ -440,15 +468,13 @@ const { error } = await supabase.from('grades').insert([newRecord]);
   if (error) {
     console.error("Ошибка Supabase:", error);
   } else {
-    finishSave();
-    
-    const updatedData = [...grades, newRecord]; 
-    
+  finishSave();
+  const updatedData = [...grades, newRecord]; 
+  
+  // Обязательно добавь await здесь!
+  await checkAllAchievements(updatedData, user.id); 
+}
 
-    checkAllAchievements(updatedData);
-  }
-
-  triggerAchievement('first_grade');
 };
 const handleRk1Change = (val: string) => {
   handleScoreChange(val, setRk1, activeSubject?.rk1?.toString(), handleInputChange);
