@@ -191,63 +191,34 @@ This means that users can only access their own data, even when interacting with
 ### Table: public.grades
 
 
-
 | Name | Type | Constraints |
-
 | --- | --- | --- |
-
 | `id` | `uuid` | Primary Key, Default: `gen_random_uuid()` |
-
 | `title` | `text` | Not Null |
-
-| `rk1` | `numeric` | Nullable, Check: 0-100 |
-
-| `rk2` | `numeric` | Nullable, Check: 0-100 |
-
-| `exam` | `numeric` | Nullable, Check: 0-100 |
-
+| `rk1` | `numeric` | Nullable, Check: 0–100 |
+| `rk2` | `numeric` | Nullable, Check: 0–100 |
+| `exam` | `numeric` | Nullable, Check: 0–100 |
 | `total_percent` | `numeric` | Nullable |
-
 | `created_at` | `timestamptz` | Default: `now()` |
-
 | `fa_grades` | `jsonb` | Nullable |
-
 | `is_pinned` | `boolean` | Nullable |
-
 | `user_id` | `uuid` | Foreign Key (`auth.users`), Default: `auth.uid()` |
-
 | `rk1_note` | `text` | Nullable |
-
 | `rk2_note` | `text` | Nullable |
-
 | `fa_note` | `text` | Nullable |
-
 | `quarter_note` | `text` | Nullable |
-
-| `course` | `integer` | Not Null, Default: 1 |
-
-| `semester` | `integer` | Not Null, Default: 1 |
-
-
+| `course` | `integer` | Not Null, Default: `1` |
+| `semester` | `integer` | Not Null, Default: `1` |
 
 ---
 
-
-
 ### Table: public.profiles
 
-
-
 | Name | Type | Constraints |
-
 | --- | --- | --- |
-
 | `id` | `uuid` | Primary Key, Foreign Key (`auth.users`) |
-
-| `current_course` | `integer` | Nullable, Default: 1 |
-
-| `current_semester` | `integer` | Nullable, Default: 1 |
-
+| `current_course` | `integer` | Nullable, Default: `1` |
+| `current_semester` | `integer` | Nullable, Default: `1` |
 ## Data Flow
 ```mermaid
 flowchart TD
